@@ -1,26 +1,43 @@
 import type { NormalizedLandmark } from "@mediapipe/tasks-vision";
 
-// Constants for neck angle penalty calculation.
-const NECK_ANGLE_IDEAL = 90;
-const NECK_ANGLE_TOLERANCE = 20;
-const NECK_ANGLE_PENALTY_FACTOR = 2;
+/** Configuration for a single penalty calculation. */
+export interface PenaltyCalculationConfig {
+  idealValue: number;
+  tolerance: number;
+  penaltyFactor: number;
+}
 
-// Constants for shoulder angle penalty calculation.
-const SHOULDER_ANGLE_IDEAL = 0;
-const SHOULDER_ANGLE_TOLERANCE = 5;
-const SHOULDER_ANGLE_PENALTY_FACTOR = 3;
+/** Configuration for penalty calculations. */
+export interface PenaltyConfig {
+  neckAnglePenaltyCalcConfig: PenaltyCalculationConfig;
+  shoulderAnglePenaltyCalcConfig: PenaltyCalculationConfig;
+  shouldersEyesWidthRatioPenaltyCalcConfig: PenaltyCalculationConfig;
+  neckLengthPenaltyCalcConfig: PenaltyCalculationConfig;
+}
 
-// Constants for width ratio penalty calculation.
-const WIDTH_RATIO_IDEAL = 6.0;
-const WIDTH_RATIO_TOLERANCE = 0.8;
-const WIDTH_RATIO_PENALTY_FACTOR = 100;
-
-// Constants for neck length ratio penalty calculation.
-//
-// This seems to be the most useful measurement for the score.
-const NECK_LENGTH_RATIO_IDEAL = 0.95;
-const NECK_LENGTH_RATIO_TOLERANCE = 0.06;
-const NECK_LENGTH_RATIO_PENALTY_FACTOR = 500;
+/** Default penalty configuration. */
+export const DEFAULT_PENALTY_CONFIG: PenaltyConfig = {
+  neckAnglePenaltyCalcConfig: {
+    idealValue: 90,
+    tolerance: 20,
+    penaltyFactor: 2,
+  },
+  shoulderAnglePenaltyCalcConfig: {
+    idealValue: 0,
+    tolerance: 5,
+    penaltyFactor: 3,
+  },
+  shouldersEyesWidthRatioPenaltyCalcConfig: {
+    idealValue: 6.0,
+    tolerance: 1.0,
+    penaltyFactor: 50,
+  },
+  neckLengthPenaltyCalcConfig: {
+    idealValue: 0.95,
+    tolerance: 0.06,
+    penaltyFactor: 500,
+  },
+};
 
 /** Posture analysis result with all component measurements. */
 export interface PostureAnalysis {
@@ -29,14 +46,27 @@ export interface PostureAnalysis {
   // Measurements.
   neckAngle: number;
   shoulderAngle: number;
-  widthRatio: number;
+  shouldersEyesWidthRatio: number;
   neckLengthRatio: number;
   // Penalties for each measurement.
   neckAnglePenalty: number;
   shoulderAnglePenalty: number;
-  widthRatioPenalty: number;
+  shouldersEyesWidthRatioPenalty: number;
   neckLengthPenalty: number;
 }
+
+/** Default posture analysis. */
+export const DEFAULT_POSTURE_ANALYSIS: PostureAnalysis = {
+  score: 100,
+  neckAngle: 0,
+  shoulderAngle: 0,
+  shouldersEyesWidthRatio: 0,
+  neckLengthRatio: 0,
+  neckAnglePenalty: 0,
+  shoulderAnglePenalty: 0,
+  shouldersEyesWidthRatioPenalty: 0,
+  neckLengthPenalty: 0,
+};
 
 /** Calculates the Euclidean distance between two landmarks. */
 function calculateDistance(
@@ -51,52 +81,11 @@ function calculateDistance(
 /** Calculate width ratio penalty based on deviation from ideal. */
 function calculatePenalty(
   value: number,
-  idealValue: number,
-  tolerance: number,
-  penaltyFactor: number
+  penaltyCalculation: PenaltyCalculationConfig
 ): number {
-  const deviation = Math.abs(value - idealValue);
-  return deviation > tolerance ? (deviation - tolerance) * penaltyFactor : 0;
-}
-
-/** Calculate width ratio penalty based on deviation from ideal. */
-function calculateWidthRatioPenalty(widthRatio: number): number {
-  return calculatePenalty(
-    widthRatio,
-    WIDTH_RATIO_IDEAL,
-    WIDTH_RATIO_TOLERANCE,
-    WIDTH_RATIO_PENALTY_FACTOR
-  );
-}
-
-/** Calculate neck angle penalty based on deviation from ideal. */
-function calculateNeckAnglePenalty(neckAngle: number): number {
-  return calculatePenalty(
-    neckAngle,
-    NECK_ANGLE_IDEAL,
-    NECK_ANGLE_TOLERANCE,
-    NECK_ANGLE_PENALTY_FACTOR
-  );
-}
-
-/** Calculate shoulder angle penalty based on deviation from ideal. */
-function calculateShoulderAnglePenalty(shoulderAngle: number): number {
-  return calculatePenalty(
-    shoulderAngle,
-    SHOULDER_ANGLE_IDEAL,
-    SHOULDER_ANGLE_TOLERANCE,
-    SHOULDER_ANGLE_PENALTY_FACTOR
-  );
-}
-
-/** Calculate neck length ratio penalty based on deviation from ideal. */
-function calculateNeckLengthRatioPenalty(neckLengthRatio: number): number {
-  return calculatePenalty(
-    neckLengthRatio,
-    NECK_LENGTH_RATIO_IDEAL,
-    NECK_LENGTH_RATIO_TOLERANCE,
-    NECK_LENGTH_RATIO_PENALTY_FACTOR
-  );
+  const deviation = Math.abs(value - penaltyCalculation.idealValue);
+  const diff = deviation - penaltyCalculation.tolerance;
+  return diff > 0 ? diff * penaltyCalculation.penaltyFactor : 0;
 }
 
 /** Calculates the neck tilt angle based on pose landmarks. */
@@ -191,41 +180,54 @@ export function calculateNeckLengthRatio(
 export function getPostureAnalysis(
   neckAngle: number,
   shoulderAngle: number,
-  widthRatio: number,
-  neckLengthRatio: number
+  shouldersEyesWidthRatio: number,
+  neckLengthRatio: number,
+  config: PenaltyConfig
 ): PostureAnalysis {
   let score = 100;
 
   // Good posture: neck should be vertical (~90 degrees).
   // Penalize deviation from vertical (90 degrees).
-  const neckAnglePenalty = calculateNeckAnglePenalty(neckAngle);
+  const neckAnglePenalty = calculatePenalty(
+    neckAngle,
+    config.neckAnglePenaltyCalcConfig
+  );
 
   // Good posture: shoulders should be level (close to 0 degrees tilt)
   // Penalize shoulder tilt beyond 5 degrees
-  const shoulderAnglePenalty = calculateShoulderAnglePenalty(shoulderAngle);
+  const shoulderAnglePenalty = calculatePenalty(
+    shoulderAngle,
+    config.shoulderAnglePenaltyCalcConfig
+  );
 
   // Good posture: width ratio should be between 2.5-3.5.
   // When you lean forward, head gets closer and ratio decreases
-  const widthRatioPenalty = calculateWidthRatioPenalty(widthRatio);
+  const shouldersEyesWidthRatioPenalty = calculatePenalty(
+    shouldersEyesWidthRatio,
+    config.shouldersEyesWidthRatioPenaltyCalcConfig
+  );
 
   // Good posture: neck length ratio should be between 0.8-1.2
   // This changes when you lean forward or slouch
-  const neckLengthPenalty = calculateNeckLengthRatioPenalty(neckLengthRatio);
+  const neckLengthPenalty = calculatePenalty(
+    neckLengthRatio,
+    config.neckLengthPenaltyCalcConfig
+  );
 
   score -= neckAnglePenalty;
   score -= shoulderAnglePenalty;
-  score -= widthRatioPenalty;
+  score -= shouldersEyesWidthRatioPenalty;
   score -= neckLengthPenalty;
 
   return {
     score: Math.max(0, Math.min(100, Math.round(score))),
     neckAngle,
     shoulderAngle,
-    widthRatio,
+    shouldersEyesWidthRatio,
     neckLengthRatio,
     neckAnglePenalty,
     shoulderAnglePenalty,
-    widthRatioPenalty,
+    shouldersEyesWidthRatioPenalty,
     neckLengthPenalty,
   };
 }

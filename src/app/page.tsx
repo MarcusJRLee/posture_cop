@@ -5,22 +5,17 @@ import CameraFeed from "@/components/camera_feed";
 import PostureScore from "@/components/posture_score";
 import AlertPopup from "@/components/alert_popup";
 import SettingsPanel from "@/components/settings_panel";
-import type { PostureAnalysis } from "@/lib/posture_logic";
+import {
+  DEFAULT_POSTURE_ANALYSIS,
+  type PostureAnalysis,
+} from "@/lib/posture_logic";
 
 /** The main component for the home page. */
 export default function Home() {
   const [monitoring, setMonitoring] = useState<boolean>(false);
-  const [postureAnalysis, setPostureAnalysis] = useState<PostureAnalysis>({
-    score: 100,
-    neckAngle: 0,
-    shoulderAngle: 0,
-    widthRatio: 0,
-    neckLengthRatio: 0,
-    neckAnglePenalty: 0,
-    shoulderAnglePenalty: 0,
-    widthRatioPenalty: 0,
-    neckLengthPenalty: 0,
-  });
+  const [postureAnalysis, setPostureAnalysis] = useState<PostureAnalysis>(
+    DEFAULT_POSTURE_ANALYSIS
+  );
   const [alert, setAlert] = useState<string | null>(null);
 
   return (

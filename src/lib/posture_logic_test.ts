@@ -6,6 +6,8 @@ import {
   calculateWidthRatio,
   calculateNeckLengthRatio,
   getPostureAnalysis,
+  PostureAnalysis,
+  PenaltyConfig,
 } from "./posture_logic";
 
 // Helper to create mock landmarks array.
@@ -25,6 +27,45 @@ function createLandmarks(
     };
   });
   return landmarks;
+}
+
+/** Default penalty configuration for testing. */
+export const DEFAULT_PENALTY_CONFIG: PenaltyConfig = {
+  neckAnglePenaltyCalcConfig: {
+    idealValue: 90,
+    tolerance: 20,
+    penaltyFactor: 2,
+  },
+  shoulderAnglePenaltyCalcConfig: {
+    idealValue: 0,
+    tolerance: 5,
+    penaltyFactor: 3,
+  },
+  shouldersEyesWidthRatioPenaltyCalcConfig: {
+    idealValue: 6.0,
+    tolerance: 1.0,
+    penaltyFactor: 50,
+  },
+  neckLengthPenaltyCalcConfig: {
+    idealValue: 0.95,
+    tolerance: 0.06,
+    penaltyFactor: 500,
+  },
+};
+
+function postureAnalysis(
+  neckAngle: number,
+  shoulderAngle: number,
+  shouldersEyesWidthRatio: number,
+  neckLengthRatio: number
+): PostureAnalysis {
+  return getPostureAnalysis(
+    neckAngle,
+    shoulderAngle,
+    shouldersEyesWidthRatio,
+    neckLengthRatio,
+    DEFAULT_PENALTY_CONFIG
+  );
 }
 
 describe("posture_logic", () => {
@@ -269,66 +310,66 @@ describe("posture_logic", () => {
   describe("getPostureAnalysis", () => {
     describe("width ratio penalty calculation", () => {
       it("should return 0 penalty when width ratio is within tolerance", () => {
-        const analysis = getPostureAnalysis(90, 0, 6.0, 0.95);
-        expect(analysis.widthRatioPenalty).toBe(0);
+        const analysis = postureAnalysis(90, 0, 6.0, 0.95);
+        expect(analysis.shouldersEyesWidthRatioPenalty).toBe(0);
       });
 
       it("should return 0 penalty when width ratio is at tolerance boundary", () => {
-        const analysis = getPostureAnalysis(90, 0, 5.2, 0.95);
+        const analysis = postureAnalysis(90, 0, 5.2, 0.95);
         // Deviation: |4.2 - 5.0| = 0.8, at tolerance boundary
-        expect(analysis.widthRatioPenalty).toBe(0);
+        expect(analysis.shouldersEyesWidthRatioPenalty).toBe(0);
       });
 
       it("should calculate penalty when width ratio exceeds tolerance", () => {
-        const analysis = getPostureAnalysis(90, 0, 4.0, 0.95);
+        const analysis = postureAnalysis(90, 0, 4.0, 0.95);
         // Deviation: |3.0 - 5.0| = 2.0, exceeds tolerance of 0.8
         // Penalty: (2.0 - 0.8) * 100 = 120
-        expect(analysis.widthRatioPenalty).toBe(120);
+        expect(analysis.shouldersEyesWidthRatioPenalty).toBe(50);
       });
 
       it("should calculate penalty when width ratio is above ideal", () => {
-        const analysis = getPostureAnalysis(90, 0, 8.0, 0.95);
+        const analysis = postureAnalysis(90, 0, 8.0, 0.95);
         // Deviation: |7.0 - 5.0| = 2.0, exceeds tolerance of 0.8
         // Penalty: (2.0 - 0.8) * 100 = 120
-        expect(analysis.widthRatioPenalty).toBe(120);
+        expect(analysis.shouldersEyesWidthRatioPenalty).toBe(50);
       });
 
       it("should calculate larger penalty for larger deviations", () => {
-        const analysis = getPostureAnalysis(90, 0, 3.0, 0.95);
+        const analysis = postureAnalysis(90, 0, 3.0, 0.95);
         // Deviation: |2.0 - 5.0| = 3.0, exceeds tolerance of 0.8
         // Penalty: (3.0 - 0.8) * 100 = 220
-        expect(analysis.widthRatioPenalty).toBeCloseTo(220);
+        expect(analysis.shouldersEyesWidthRatioPenalty).toBeCloseTo(100);
       });
     });
 
     describe("neck angle penalty calculation", () => {
       it("should return 0 penalty when neck angle is within tolerance", () => {
-        const analysis = getPostureAnalysis(90, 0, 5.0, 0.95);
+        const analysis = postureAnalysis(90, 0, 5.0, 0.95);
         expect(analysis.neckAnglePenalty).toBe(0);
       });
 
       it("should return 0 penalty when neck angle is at tolerance boundary", () => {
-        const analysis = getPostureAnalysis(110, 0, 5.0, 0.95);
+        const analysis = postureAnalysis(110, 0, 5.0, 0.95);
         // Deviation: |110 - 90| = 20, at tolerance boundary
         expect(analysis.neckAnglePenalty).toBe(0);
       });
 
       it("should calculate penalty when neck angle exceeds tolerance", () => {
-        const analysis = getPostureAnalysis(115, 0, 5.0, 0.95);
+        const analysis = postureAnalysis(115, 0, 5.0, 0.95);
         // Deviation: |115 - 90| = 25, exceeds tolerance of 20
         // Penalty: (25 - 20) * 2 = 10
         expect(analysis.neckAnglePenalty).toBe(10);
       });
 
       it("should calculate penalty when neck angle is below ideal", () => {
-        const analysis = getPostureAnalysis(65, 0, 5.0, 0.95);
+        const analysis = postureAnalysis(65, 0, 5.0, 0.95);
         // Deviation: |65 - 90| = 25, exceeds tolerance of 20
         // Penalty: (25 - 20) * 2 = 10
         expect(analysis.neckAnglePenalty).toBe(10);
       });
 
       it("should calculate larger penalty for larger deviations", () => {
-        const analysis = getPostureAnalysis(130, 0, 5.0, 0.95);
+        const analysis = postureAnalysis(130, 0, 5.0, 0.95);
         // Deviation: |130 - 90| = 40, exceeds tolerance of 20
         // Penalty: (40 - 20) * 2 = 40
         expect(analysis.neckAnglePenalty).toBe(40);
@@ -337,32 +378,32 @@ describe("posture_logic", () => {
 
     describe("neck length ratio penalty calculation", () => {
       it("should return 0 penalty when neck length ratio is within tolerance", () => {
-        const analysis = getPostureAnalysis(90, 0, 5.0, 0.95);
+        const analysis = postureAnalysis(90, 0, 5.0, 0.95);
         expect(analysis.neckLengthPenalty).toBe(0);
       });
 
       it("should return 0 penalty when neck length ratio is at tolerance boundary", () => {
-        const analysis = getPostureAnalysis(90, 0, 5.0, 0.89);
+        const analysis = postureAnalysis(90, 0, 5.0, 0.89);
         // Deviation: |0.89 - 0.95| = 0.06, at tolerance boundary
         expect(analysis.neckLengthPenalty).toBe(0);
       });
 
       it("should calculate penalty when neck length ratio exceeds tolerance", () => {
-        const analysis = getPostureAnalysis(90, 0, 5.0, 0.5);
+        const analysis = postureAnalysis(90, 0, 5.0, 0.5);
         // Deviation: |0.5 - 0.95| = 0.45, exceeds tolerance of 0.06
         // Penalty: (0.45 - 0.06) * 500 = 195
         expect(analysis.neckLengthPenalty).toBeCloseTo(195);
       });
 
       it("should calculate penalty when neck length ratio is above ideal", () => {
-        const analysis = getPostureAnalysis(90, 0, 5.0, 1.5);
+        const analysis = postureAnalysis(90, 0, 5.0, 1.5);
         // Deviation: |1.5 - 0.95| = 0.55, exceeds tolerance of 0.06
         // Penalty: (0.55 - 0.06) * 500 = 245
         expect(analysis.neckLengthPenalty).toBeCloseTo(245);
       });
 
       it("should calculate larger penalty for larger deviations", () => {
-        const analysis = getPostureAnalysis(90, 0, 5.0, 0.3);
+        const analysis = postureAnalysis(90, 0, 5.0, 0.3);
         // Deviation: |0.3 - 0.95| = 0.65, exceeds tolerance of 0.06
         // Penalty: (0.65 - 0.06) * 500 = 295
         expect(analysis.neckLengthPenalty).toBeCloseTo(295);
@@ -371,32 +412,32 @@ describe("posture_logic", () => {
 
     describe("shoulder angle penalty calculation", () => {
       it("should return 0 penalty when shoulder angle is within tolerance", () => {
-        const analysis = getPostureAnalysis(90, 0, 5.0, 0.95);
+        const analysis = postureAnalysis(90, 0, 5.0, 0.95);
         expect(analysis.shoulderAnglePenalty).toBe(0);
       });
 
       it("should return 0 penalty when shoulder angle is at tolerance boundary", () => {
-        const analysis = getPostureAnalysis(90, 5, 5.0, 0.95);
+        const analysis = postureAnalysis(90, 5, 5.0, 0.95);
         // Deviation: |5 - 0| = 5, at tolerance boundary
         expect(analysis.shoulderAnglePenalty).toBe(0);
       });
 
       it("should calculate penalty when shoulder angle exceeds tolerance", () => {
-        const analysis = getPostureAnalysis(90, 8, 5.0, 0.95);
+        const analysis = postureAnalysis(90, 8, 5.0, 0.95);
         // Deviation: |8 - 0| = 8, exceeds tolerance of 5
         // Penalty: (8 - 5) * 3 = 9
         expect(analysis.shoulderAnglePenalty).toBe(9);
       });
 
       it("should calculate penalty for negative shoulder angle", () => {
-        const analysis = getPostureAnalysis(90, -8, 5.0, 0.95);
+        const analysis = postureAnalysis(90, -8, 5.0, 0.95);
         // Deviation: |-8 - 0| = 8, exceeds tolerance of 5
         // Penalty: (8 - 5) * 3 = 9
         expect(analysis.shoulderAnglePenalty).toBe(9);
       });
 
       it("should calculate larger penalty for larger deviations", () => {
-        const analysis = getPostureAnalysis(90, 15, 5.0, 0.95);
+        const analysis = postureAnalysis(90, 15, 5.0, 0.95);
         // Deviation: |15 - 0| = 15, exceeds tolerance of 5
         // Penalty: (15 - 5) * 3 = 30
         expect(analysis.shoulderAnglePenalty).toBe(30);
@@ -405,12 +446,12 @@ describe("posture_logic", () => {
 
     describe("overall score calculation", () => {
       it("should return 100 for perfect posture", () => {
-        const analysis = getPostureAnalysis(90, 0, 6.0, 0.95);
+        const analysis = postureAnalysis(90, 0, 6.0, 0.95);
         expect(analysis.score).toBe(100);
       });
 
       it("should subtract penalties from score", () => {
-        const analysis = getPostureAnalysis(115, 8, 3.0, 0.5);
+        const analysis = postureAnalysis(115, 8, 3.0, 0.5);
         // neckAnglePenalty: (25 - 20) * 2 = 10
         // shoulderAnglePenalty: (8 - 5) * 3 = 9
         // widthRatioPenalty: (2.0 - 0.8) * 100 = 120
@@ -421,37 +462,37 @@ describe("posture_logic", () => {
       });
 
       it("should clamp score to minimum of 0", () => {
-        const analysis = getPostureAnalysis(180, 30, 0.1, 0.1);
+        const analysis = postureAnalysis(180, 30, 0.1, 0.1);
         // Very large penalties that would result in negative score
         expect(analysis.score).toBe(0);
       });
 
       it("should clamp score to maximum of 100", () => {
-        const analysis = getPostureAnalysis(90, 0, 6.0, 0.95);
+        const analysis = postureAnalysis(90, 0, 6.0, 0.95);
         expect(analysis.score).toBe(100);
       });
 
       it("should round score to nearest integer", () => {
         // Create a scenario where penalties result in non-integer score
-        const analysis = getPostureAnalysis(90, 0, 5.0, 0.95);
+        const analysis = postureAnalysis(90, 0, 5.0, 0.95);
         expect(Number.isInteger(analysis.score)).toBe(true);
       });
     });
 
     describe("measurement values", () => {
       it("should return all input measurements", () => {
-        const analysis = getPostureAnalysis(95, 3, 4.5, 0.9);
+        const analysis = postureAnalysis(95, 3, 4.5, 0.9);
         expect(analysis.neckAngle).toBe(95);
         expect(analysis.shoulderAngle).toBe(3);
-        expect(analysis.widthRatio).toBe(4.5);
+        expect(analysis.shouldersEyesWidthRatio).toBe(4.5);
         expect(analysis.neckLengthRatio).toBe(0.9);
       });
 
       it("should return all penalty values", () => {
-        const analysis = getPostureAnalysis(115, 8, 3.0, 0.5);
+        const analysis = postureAnalysis(115, 8, 3.0, 0.5);
         expect(analysis.neckAnglePenalty).toBeDefined();
         expect(analysis.shoulderAnglePenalty).toBeDefined();
-        expect(analysis.widthRatioPenalty).toBeDefined();
+        expect(analysis.shouldersEyesWidthRatioPenalty).toBeDefined();
         expect(analysis.neckLengthPenalty).toBeDefined();
       });
     });

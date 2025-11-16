@@ -13,6 +13,7 @@ import {
   calculateNeckLengthRatio,
   getPostureAnalysis,
   type PostureAnalysis,
+  DEFAULT_PENALTY_CONFIG,
 } from "@/lib/posture_logic";
 import {
   PoseLandmarker,
@@ -57,7 +58,13 @@ export default function CameraFeed({
         const shoulderAngle = calculateShoulderAngle(results.poseLandmarks);
         const widthRatio = calculateWidthRatio(results.poseLandmarks);
         const neckLengthRatio = calculateNeckLengthRatio(results.poseLandmarks);
-        const analysis = getPostureAnalysis(neckAngle, shoulderAngle, widthRatio, neckLengthRatio);
+        const analysis = getPostureAnalysis(
+          neckAngle,
+          shoulderAngle,
+          widthRatio,
+          neckLengthRatio,
+          DEFAULT_PENALTY_CONFIG
+        );
 
         onPostureUpdate(analysis);
 

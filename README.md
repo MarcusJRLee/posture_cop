@@ -1,26 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Posture Watch 🧘‍♂️
 
-## Getting Started
+Real-time posture monitoring using **MediaPipe** in the browser.
 
-First, run the development server:
+## Features
+
+- 100% client-side (no server, no video upload)
+- Real-time neck & spine tracking
+- Posture score (0–100)
+- Visual + audio alerts
+- Vercel-ready, $0/month to start
+
+## Deploy in 1 Click
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/MarcusJRLee/posture_cop)
+
+## Local Dev
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Created using.
+npx create-next-app@latest posture_cop \
+  --typescript \
+  --eslint \
+  --tailwind \
+  --app \
+  --src-dir \
+  --turbo \
+  --import-alias "@/*"
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+# Installed dependencies.
+npm i @vercel/speed-insights @vercel/analytics
+
+# Install MediaPipe: mediapipe.dev
+# https://www.npmjs.com/package/@mediapipe/tasks-vision
+npm i @mediapipe/tasks-vision
+
+# Vercel CLI (optional but handy).
+npm i -g vercel
+
+# Add a lint-staged + Husky pre-commit hook:
+npm i -D husky lint-staged
+npx husky init
+echo "npx lint-staged" > .husky/pre-commit
+
+# Testing (Jest + React Testing Library + Playwright).
+npm i -D jest ts-jest @testing-library/react @testing-library/jest-dom playwright
+npm i --save-dev jest-environment-jsdom
+
+# Check that your Node version is ≥ 20 (Vercel uses the latest LTS).
+node -v
+
+# Check that your TypeScript compiles.
+npx tsc
+
+# Run a dev server.
+npm run dev
+
+# Other npm commands (see pacakge.json for complete list).
+npm run build
+npm run start
+npm run lint
+```
+
+Supabase setup:
+
+```bash
+# Test it works.
+npx supabase --help
+
+# Login (one-time).
+npx supabase login
+
+# Link your project (replace YOUR_PROJECT_REF with your Supabase project ref, e.g., abcdef123456).
+npx supabase link --project-ref YOUR_PROJECT_REF
+
+# Generate types (outputs to stdout – redirect to a file).
+npx supabase gen types typescript --project-id YOUR_PROJECT_REF > src/types/supabase.ts
+```
 
 ## Learn More
+
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 To learn more about Next.js, take a look at the following resources:
 

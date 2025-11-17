@@ -54,15 +54,8 @@ export default function CameraFeed({
       ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
 
       if (results.poseLandmarks) {
-        const neckAngle = calculateNeckAngle(results.poseLandmarks);
-        const shoulderAngle = calculateShoulderAngle(results.poseLandmarks);
-        const widthRatio = calculateWidthRatio(results.poseLandmarks);
-        const neckLengthRatio = calculateNeckLengthRatio(results.poseLandmarks);
         const analysis = getPostureAnalysis(
-          neckAngle,
-          shoulderAngle,
-          widthRatio,
-          neckLengthRatio,
+          results.poseLandmarks,
           DEFAULT_PENALTY_CONFIG
         );
 

@@ -7,16 +7,26 @@ export interface PenaltyCalculationConfig {
   penaltyFactor: number;
 }
 
+/** Configuration for a single penalty calculation for a minimum value. */
+export interface PenaltyCalculationMinConfig {
+  minValue: number;
+  penaltyFactor: number;
+}
+
 /** Configuration for penalty calculations. */
 export interface PenaltyConfig {
+  neckLengthPenaltyCalcConfig: PenaltyCalculationMinConfig;
   neckAnglePenaltyCalcConfig: PenaltyCalculationConfig;
   shoulderAnglePenaltyCalcConfig: PenaltyCalculationConfig;
   shouldersEyesWidthRatioPenaltyCalcConfig: PenaltyCalculationConfig;
-  neckLengthPenaltyCalcConfig: PenaltyCalculationConfig;
 }
 
 /** Default penalty configuration. */
 export const DEFAULT_PENALTY_CONFIG: PenaltyConfig = {
+  neckLengthPenaltyCalcConfig: {
+    minValue: 0.9,
+    penaltyFactor: 500,
+  },
   neckAnglePenaltyCalcConfig: {
     idealValue: 90,
     tolerance: 20,
@@ -29,13 +39,8 @@ export const DEFAULT_PENALTY_CONFIG: PenaltyConfig = {
   },
   shouldersEyesWidthRatioPenaltyCalcConfig: {
     idealValue: 6.0,
-    tolerance: 1.0,
+    tolerance: 1,
     penaltyFactor: 50,
-  },
-  neckLengthPenaltyCalcConfig: {
-    idealValue: 0.95,
-    tolerance: 0.06,
-    penaltyFactor: 500,
   },
 };
 
@@ -49,23 +54,26 @@ export interface PostureAnalysis {
   shouldersEyesWidthRatio: number;
   neckLengthRatio: number;
   // Penalties for each measurement.
+  neckLengthPenalty: number;
   neckAnglePenalty: number;
   shoulderAnglePenalty: number;
   shouldersEyesWidthRatioPenalty: number;
-  neckLengthPenalty: number;
 }
 
 /** Default posture analysis. */
 export const DEFAULT_POSTURE_ANALYSIS: PostureAnalysis = {
+  // Overall score out of 100.
   score: 100,
+  // Measurements.
   neckAngle: 0,
   shoulderAngle: 0,
   shouldersEyesWidthRatio: 0,
   neckLengthRatio: 0,
+  // Penalties for each measurement.
+  neckLengthPenalty: 0,
   neckAnglePenalty: 0,
   shoulderAnglePenalty: 0,
   shouldersEyesWidthRatioPenalty: 0,
-  neckLengthPenalty: 0,
 };
 
 /** Calculates the Euclidean distance between two landmarks. */
@@ -83,15 +91,53 @@ function calculatePenalty(
   value: number,
   penaltyCalculation: PenaltyCalculationConfig
 ): number {
+  const factor = penaltyCalculation.penaltyFactor;
   const deviation = Math.abs(value - penaltyCalculation.idealValue);
   const diff = deviation - penaltyCalculation.tolerance;
-  return diff > 0 ? diff * penaltyCalculation.penaltyFactor : 0;
+  return diff > 0 ? diff * factor : 0;
+}
+
+/** Calculate width ratio penalty based on deviation from ideal. */
+function calculatePenaltyMin(
+  value: number,
+  penaltyCalculation: PenaltyCalculationMinConfig
+): number {
+  const factor = penaltyCalculation.penaltyFactor;
+  const diff = penaltyCalculation.minValue - value;
+  return diff > 0 ? diff * factor : 0;
+}
+
+/**
+ * Calculate the neck length ratio, which is the distance between the eye line
+ * and the shoulder line, normalized by shoulder width. This measurement changes
+ * when you lean forward or backward.
+ */
+export function calculateNeckLengthRatio(
+  landmarks: NormalizedLandmark[]
+): number {
+  const leftEye = landmarks[2];
+  const rightEye = landmarks[5];
+  const leftShoulder = landmarks[12];
+  const rightShoulder = landmarks[11];
+
+  // Calculate midpoints.
+  const eyeMidY = (leftEye.y + rightEye.y) / 2;
+  const shoulderMidY = (leftShoulder.y + rightShoulder.y) / 2;
+
+  // Vertical distance between eye line and shoulder line.
+  const neckLength = Math.abs(shoulderMidY - eyeMidY);
+
+  // Normalize by shoulder width.
+  const shoulderWidth = calculateDistance(leftShoulder, rightShoulder);
+
+  // Return ratio (typical good posture ratio is around 0.8-1.2).
+  return neckLength / shoulderWidth;
 }
 
 /** Calculates the neck tilt angle based on pose landmarks. */
 export function calculateNeckAngle(landmarks: NormalizedLandmark[]): number {
-  const leftEar = landmarks[7];
-  const rightEar = landmarks[8];
+  const leftEar = landmarks[2];
+  const rightEar = landmarks[5];
   const leftShoulder = landmarks[11];
   const rightShoulder = landmarks[12];
 
@@ -136,7 +182,9 @@ export function calculateShoulderAngle(
  * Calculate the shoulder-to-eye width ratio.
  * This ratio decreases when you lean forward (head moves closer to camera).
  */
-export function calculateWidthRatio(landmarks: NormalizedLandmark[]): number {
+export function calculateShouldersEyesWidthRatio(
+  landmarks: NormalizedLandmark[]
+): number {
   const leftEye = landmarks[2];
   const rightEye = landmarks[5];
   const leftShoulder = landmarks[12];
@@ -149,42 +197,24 @@ export function calculateWidthRatio(landmarks: NormalizedLandmark[]): number {
   return shoulderWidth / eyeWidth;
 }
 
-/**
- * Calculate the neck length ratio, which is the distance between the eye line
- * and the shoulder line, normalized by shoulder width. This measurement changes
- * when you lean forward or backward.
- */
-export function calculateNeckLengthRatio(
-  landmarks: NormalizedLandmark[]
-): number {
-  const leftEye = landmarks[2];
-  const rightEye = landmarks[5];
-  const leftShoulder = landmarks[12];
-  const rightShoulder = landmarks[11];
-
-  // Calculate midpoints.
-  const eyeMidY = (leftEye.y + rightEye.y) / 2;
-  const shoulderMidY = (leftShoulder.y + rightShoulder.y) / 2;
-
-  // Vertical distance between eye line and shoulder line.
-  const neckLength = Math.abs(shoulderMidY - eyeMidY);
-
-  // Normalize by shoulder width.
-  const shoulderWidth = calculateDistance(leftShoulder, rightShoulder);
-
-  // Return ratio (typical good posture ratio is around 0.8-1.2).
-  return neckLength / shoulderWidth;
-}
-
 /** Analyze posture and return detailed breakdown. */
 export function getPostureAnalysis(
-  neckAngle: number,
-  shoulderAngle: number,
-  shouldersEyesWidthRatio: number,
-  neckLengthRatio: number,
+  landmarks: NormalizedLandmark[],
   config: PenaltyConfig
 ): PostureAnalysis {
+  const neckLengthRatio = calculateNeckLengthRatio(landmarks);
+  const neckAngle = calculateNeckAngle(landmarks);
+  const shoulderAngle = calculateShoulderAngle(landmarks);
+  const shouldersEyesWidthRatio = calculateShouldersEyesWidthRatio(landmarks);
+
   let score = 100;
+
+  // Good posture: neck length ratio should be between 0.8-1.2
+  // This changes when you lean forward or slouch
+  const neckLengthPenalty = calculatePenaltyMin(
+    neckLengthRatio,
+    config.neckLengthPenaltyCalcConfig
+  );
 
   // Good posture: neck should be vertical (~90 degrees).
   // Penalize deviation from vertical (90 degrees).
@@ -205,13 +235,6 @@ export function getPostureAnalysis(
   const shouldersEyesWidthRatioPenalty = calculatePenalty(
     shouldersEyesWidthRatio,
     config.shouldersEyesWidthRatioPenaltyCalcConfig
-  );
-
-  // Good posture: neck length ratio should be between 0.8-1.2
-  // This changes when you lean forward or slouch
-  const neckLengthPenalty = calculatePenalty(
-    neckLengthRatio,
-    config.neckLengthPenaltyCalcConfig
   );
 
   score -= neckAnglePenalty;

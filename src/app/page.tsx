@@ -23,7 +23,7 @@ export default function Home() {
       <div className="max-w-6xl mx-auto">
         <header className="text-center mb-8">
           <h1 className="text-4xl font-bold text-slate-800 mb-2">
-            Posture Watch
+            Posture Cop
           </h1>
           <p className="text-slate-600">
             Real-time posture monitoring in your browser

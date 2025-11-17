@@ -7,15 +7,9 @@ export interface PenaltyCalculationConfig {
   penaltyFactor: number;
 }
 
-/** Configuration for a single penalty calculation for a minimum value. */
-export interface PenaltyCalculationMinConfig {
-  minValue: number;
-  penaltyFactor: number;
-}
-
 /** Configuration for penalty calculations. */
 export interface PenaltyConfig {
-  neckLengthPenaltyCalcConfig: PenaltyCalculationMinConfig;
+  neckLengthPenaltyCalcConfig: PenaltyCalculationConfig;
   neckAnglePenaltyCalcConfig: PenaltyCalculationConfig;
   shoulderAnglePenaltyCalcConfig: PenaltyCalculationConfig;
   shouldersEyesWidthRatioPenaltyCalcConfig: PenaltyCalculationConfig;
@@ -24,7 +18,8 @@ export interface PenaltyConfig {
 /** Default penalty configuration. */
 export const DEFAULT_PENALTY_CONFIG: PenaltyConfig = {
   neckLengthPenaltyCalcConfig: {
-    minValue: 0.9,
+    idealValue: 0.95,
+    tolerance: 0.07,
     penaltyFactor: 500,
   },
   neckAnglePenaltyCalcConfig: {
@@ -89,21 +84,15 @@ function calculateDistance(
 /** Calculate width ratio penalty based on deviation from ideal. */
 function calculatePenalty(
   value: number,
-  penaltyCalculation: PenaltyCalculationConfig
+  penaltyCalculation: PenaltyCalculationConfig,
+  allowAboveIdealRange: boolean = false
 ): number {
+  if (allowAboveIdealRange && value > penaltyCalculation.idealValue) {
+    return 0;
+  }
   const factor = penaltyCalculation.penaltyFactor;
   const deviation = Math.abs(value - penaltyCalculation.idealValue);
   const diff = deviation - penaltyCalculation.tolerance;
-  return diff > 0 ? diff * factor : 0;
-}
-
-/** Calculate width ratio penalty based on deviation from ideal. */
-function calculatePenaltyMin(
-  value: number,
-  penaltyCalculation: PenaltyCalculationMinConfig
-): number {
-  const factor = penaltyCalculation.penaltyFactor;
-  const diff = penaltyCalculation.minValue - value;
   return diff > 0 ? diff * factor : 0;
 }
 
@@ -211,9 +200,10 @@ export function getPostureAnalysis(
 
   // Good posture: neck length ratio should be between 0.8-1.2
   // This changes when you lean forward or slouch
-  const neckLengthPenalty = calculatePenaltyMin(
+  const neckLengthPenalty = calculatePenalty(
     neckLengthRatio,
-    config.neckLengthPenaltyCalcConfig
+    config.neckLengthPenaltyCalcConfig,
+    /* allowAboveIdealRange= */ true
   );
 
   // Good posture: neck should be vertical (~90 degrees).

@@ -32,7 +32,8 @@ function createLandmarks(
 /** Default penalty configuration for testing. */
 export const DEFAULT_PENALTY_CONFIG: PenaltyConfig = {
   neckLengthPenaltyCalcConfig: {
-    minValue: 0.9,
+    idealValue: 0.95,
+    tolerance: 0.07,
     penaltyFactor: 500,
   },
   neckAnglePenaltyCalcConfig: {
@@ -152,7 +153,7 @@ describe("posture_logic", () => {
         12: { x: 2, y: 3 }, // leftShoulder
       });
       const analysis = getPostureAnalysis(landmarks, DEFAULT_PENALTY_CONFIG);
-      expect(analysis.score).toBe(44);
+      expect(analysis.score).toBe(54);
     });
   });
 });

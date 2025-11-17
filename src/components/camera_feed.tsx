@@ -7,10 +7,6 @@ import {
   DrawingUtils,
 } from "@/lib/mediapipe";
 import {
-  calculateNeckAngle,
-  calculateShoulderAngle,
-  calculateWidthRatio,
-  calculateNeckLengthRatio,
   getPostureAnalysis,
   type PostureAnalysis,
   DEFAULT_PENALTY_CONFIG,

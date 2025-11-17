@@ -1,4 +1,4 @@
-# Posture Watch 🧘‍♂️
+# Posture Cop 🧘‍♂️
 
 Real-time posture monitoring using **MediaPipe** in the browser.
 

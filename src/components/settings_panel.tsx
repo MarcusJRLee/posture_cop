@@ -3,7 +3,10 @@ interface SettingsPanelProps {
   onToggle: () => void;
 }
 
-export default function SettingsPanel({ isMonitoring, onToggle }: SettingsPanelProps) {
+export default function SettingsPanel({
+  isMonitoring,
+  onToggle,
+}: SettingsPanelProps) {
   return (
     <div className="bg-white p-6 rounded-xl shadow-lg space-y-4">
       <button

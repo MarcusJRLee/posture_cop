@@ -3,7 +3,6 @@
 import { useState } from "react";
 import CameraFeed from "@/components/camera_feed";
 import PostureScore from "@/components/posture_score";
-import AlertPopup from "@/components/alert_popup";
 import SettingsPanel from "@/components/settings_panel";
 import {
   DEFAULT_POSTURE_ANALYSIS,
@@ -20,7 +19,6 @@ export default function Home() {
   );
   const [penaltyConfig, setPenaltyConfig] =
     useState<PenaltyConfig>(DEFAULT_PENALTY_CONFIG);
-  const [alert, setAlert] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 p-4">
@@ -40,7 +38,6 @@ export default function Home() {
               isActive={monitoring}
               penaltyConfig={penaltyConfig}
               onPostureUpdate={setPostureAnalysis}
-              onAlert={setAlert}
             />
           </div>
 
@@ -56,8 +53,6 @@ export default function Home() {
             />
           </div>
         </div>
-
-        {alert && <AlertPopup message={alert} onClose={() => setAlert(null)} />}
       </div>
     </div>
   );

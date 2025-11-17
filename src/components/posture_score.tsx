@@ -58,12 +58,12 @@ export default function PostureScore({
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-lg">
-      <h3 className="text-lg font-semibold text-slate-700 mb-2">
-        Posture Analysis
+    <div className="bg-slate-800 p-6 rounded-xl shadow-2xl border-2 border-blue-900">
+      <h3 className="text-lg font-bold text-blue-400 mb-2 uppercase tracking-wide">
+        🚔 Posture Report
       </h3>
       <div className={`text-5xl font-bold text-center ${color}`}>{score}</div>
-      <div className="mt-3 h-3 bg-slate-200 rounded-full overflow-hidden">
+      <div className="mt-3 h-3 bg-slate-700 rounded-full overflow-hidden border border-slate-600">
         <div
           className={`h-full transition-all duration-500 ${
             score > 80
@@ -78,16 +78,16 @@ export default function PostureScore({
 
       <button
         onClick={handleBaseline}
-        className="mt-3 w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+        className="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-lg border border-blue-500"
       >
-        Baseline
+        📋 Set Baseline
       </button>
 
-      <div className="mt-4 pt-4 border-t border-slate-200">
-        <h4 className="text-sm font-semibold text-slate-600 mb-3">
-          Component Measurements
+      <div className="mt-4 pt-4 border-t border-slate-600">
+        <h4 className="text-sm font-bold text-blue-400 mb-3 uppercase tracking-wide">
+          📊 Measurements
         </h4>
-        <div className="grid grid-cols-[1fr_4.5rem_4.5rem_4.5rem] gap-2 items-center mb-2 text-xs text-slate-500">
+        <div className="grid grid-cols-[1fr_4.5rem_4.5rem_4.5rem] gap-2 items-center mb-2 text-xs text-slate-400">
           <span></span>
           <span className="text-center">Current</span>
           <span className="text-center">Target</span>
@@ -95,8 +95,8 @@ export default function PostureScore({
         </div>
         <div className="space-y-3 text-sm">
           <div className="grid grid-cols-[1fr_4.5rem_4.5rem_4.5rem] gap-2 items-center">
-            <span className="text-slate-600">Neck Length:</span>
-            <span className="font-mono font-semibold text-slate-800 text-center">
+            <span className="text-slate-300">Neck Length:</span>
+            <span className="font-mono font-semibold text-white text-center">
               {neckLengthRatio.toFixed(2)}
             </span>
             <input
@@ -111,7 +111,7 @@ export default function PostureScore({
                   },
                 })
               }
-              className="w-full px-1 py-0.5 border border-slate-300 rounded text-xs text-center"
+              className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="0.01"
             />
             <input
@@ -126,13 +126,13 @@ export default function PostureScore({
                   },
                 })
               }
-              className="w-full px-1 py-0.5 border border-slate-300 rounded text-xs text-center"
+              className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="0.01"
             />
           </div>
           <div className="grid grid-cols-[1fr_4.5rem_4.5rem_4.5rem] gap-2 items-center">
-            <span className="text-slate-600">Shoulder Height:</span>
-            <span className="font-mono font-semibold text-slate-800 text-center">
+            <span className="text-slate-300">Shoulder Height:</span>
+            <span className="font-mono font-semibold text-white text-center">
               {shoulderHeight.toFixed(1)}%
             </span>
             <input
@@ -147,7 +147,7 @@ export default function PostureScore({
                   },
                 })
               }
-              className="w-full px-1 py-0.5 border border-slate-300 rounded text-xs text-center"
+              className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="1"
             />
             <input
@@ -162,13 +162,13 @@ export default function PostureScore({
                   },
                 })
               }
-              className="w-full px-1 py-0.5 border border-slate-300 rounded text-xs text-center"
+              className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="0.1"
             />
           </div>
           <div className="grid grid-cols-[1fr_4.5rem_4.5rem_4.5rem] gap-2 items-center">
-            <span className="text-slate-600">Neck Angle:</span>
-            <span className="font-mono font-semibold text-slate-800 text-center">
+            <span className="text-slate-300">Neck Angle:</span>
+            <span className="font-mono font-semibold text-white text-center">
               {neckAngle.toFixed(1)}°
             </span>
             <input
@@ -183,7 +183,7 @@ export default function PostureScore({
                   },
                 })
               }
-              className="w-full px-1 py-0.5 border border-slate-300 rounded text-xs text-center"
+              className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="0.1"
             />
             <input
@@ -198,13 +198,13 @@ export default function PostureScore({
                   },
                 })
               }
-              className="w-full px-1 py-0.5 border border-slate-300 rounded text-xs text-center"
+              className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="0.1"
             />
           </div>
           <div className="grid grid-cols-[1fr_4.5rem_4.5rem_4.5rem] gap-2 items-center">
-            <span className="text-slate-600">Shoulder Tilt:</span>
-            <span className="font-mono font-semibold text-slate-800 text-center">
+            <span className="text-slate-300">Shoulder Tilt:</span>
+            <span className="font-mono font-semibold text-white text-center">
               {shoulderAngle.toFixed(1)}°
             </span>
             <input
@@ -219,7 +219,7 @@ export default function PostureScore({
                   },
                 })
               }
-              className="w-full px-1 py-0.5 border border-slate-300 rounded text-xs text-center"
+              className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="0.1"
             />
             <input
@@ -234,13 +234,13 @@ export default function PostureScore({
                   },
                 })
               }
-              className="w-full px-1 py-0.5 border border-slate-300 rounded text-xs text-center"
+              className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="0.1"
             />
           </div>
           <div className="grid grid-cols-[1fr_4.5rem_4.5rem_4.5rem] gap-2 items-center">
-            <span className="text-slate-600">Width Ratio:</span>
-            <span className="font-mono font-semibold text-slate-800 text-center">
+            <span className="text-slate-300">Width Ratio:</span>
+            <span className="font-mono font-semibold text-white text-center">
               {shouldersEyesWidthRatio.toFixed(2)}
             </span>
             <input
@@ -255,7 +255,7 @@ export default function PostureScore({
                   },
                 })
               }
-              className="w-full px-1 py-0.5 border border-slate-300 rounded text-xs text-center"
+              className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="0.1"
             />
             <input
@@ -270,23 +270,23 @@ export default function PostureScore({
                   },
                 })
               }
-              className="w-full px-1 py-0.5 border border-slate-300 rounded text-xs text-center"
+              className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="0.1"
             />
           </div>
         </div>
 
-        <h4 className="text-sm font-semibold text-slate-600 mb-2 mt-3 pt-3 border-t border-slate-200">
-          Penalties
+        <h4 className="text-sm font-bold text-blue-400 mb-2 mt-3 pt-3 border-t border-slate-600 uppercase tracking-wide">
+          ⚠️ Penalties
         </h4>
-        <div className="grid grid-cols-[1fr_4.5rem_4.5rem] gap-2 items-center mb-2 text-xs text-slate-500">
+        <div className="grid grid-cols-[1fr_4.5rem_4.5rem] gap-2 items-center mb-2 text-xs text-slate-400">
           <span></span>
           <span className="text-center">Mult</span>
           <span className="text-center">Penalty</span>
         </div>
         <div className="space-y-3 text-sm">
           <div className="grid grid-cols-[1fr_4.5rem_4.5rem] gap-2 items-center">
-            <span className="text-slate-600">Neck Length:</span>
+            <span className="text-slate-300">Neck Length:</span>
             <input
               type="number"
               value={config.neckLengthPenaltyCalcConfig.penaltyFactor}
@@ -299,7 +299,7 @@ export default function PostureScore({
                   },
                 })
               }
-              className="w-full px-1 py-0.5 border border-slate-300 rounded text-xs text-center"
+              className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="10"
             />
             <span className="font-mono font-semibold text-red-600 text-center">
@@ -307,7 +307,7 @@ export default function PostureScore({
             </span>
           </div>
           <div className="grid grid-cols-[1fr_4.5rem_4.5rem] gap-2 items-center">
-            <span className="text-slate-600">Shoulder Height:</span>
+            <span className="text-slate-300">Shoulder Height:</span>
             <input
               type="number"
               value={config.shoulderHeightPenaltyCalcConfig.penaltyFactor}
@@ -320,7 +320,7 @@ export default function PostureScore({
                   },
                 })
               }
-              className="w-full px-1 py-0.5 border border-slate-300 rounded text-xs text-center"
+              className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="1"
             />
             <span className="font-mono font-semibold text-red-600 text-center">
@@ -328,7 +328,7 @@ export default function PostureScore({
             </span>
           </div>
           <div className="grid grid-cols-[1fr_4.5rem_4.5rem] gap-2 items-center">
-            <span className="text-slate-600">Neck Angle:</span>
+            <span className="text-slate-300">Neck Angle:</span>
             <input
               type="number"
               value={config.neckAnglePenaltyCalcConfig.penaltyFactor}
@@ -341,7 +341,7 @@ export default function PostureScore({
                   },
                 })
               }
-              className="w-full px-1 py-0.5 border border-slate-300 rounded text-xs text-center"
+              className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="0.1"
             />
             <span className="font-mono font-semibold text-red-600 text-center">
@@ -349,7 +349,7 @@ export default function PostureScore({
             </span>
           </div>
           <div className="grid grid-cols-[1fr_4.5rem_4.5rem] gap-2 items-center">
-            <span className="text-slate-600">Shoulder Tilt:</span>
+            <span className="text-slate-300">Shoulder Tilt:</span>
             <input
               type="number"
               value={config.shoulderAnglePenaltyCalcConfig.penaltyFactor}
@@ -362,7 +362,7 @@ export default function PostureScore({
                   },
                 })
               }
-              className="w-full px-1 py-0.5 border border-slate-300 rounded text-xs text-center"
+              className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="0.1"
             />
             <span className="font-mono font-semibold text-red-600 text-center">
@@ -370,7 +370,7 @@ export default function PostureScore({
             </span>
           </div>
           <div className="grid grid-cols-[1fr_4.5rem_4.5rem] gap-2 items-center">
-            <span className="text-slate-600">Width Ratio:</span>
+            <span className="text-slate-300">Width Ratio:</span>
             <input
               type="number"
               value={
@@ -385,7 +385,7 @@ export default function PostureScore({
                   },
                 })
               }
-              className="w-full px-1 py-0.5 border border-slate-300 rounded text-xs text-center"
+              className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="1"
             />
             <span className="font-mono font-semibold text-red-600 text-center">

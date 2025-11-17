@@ -95,7 +95,7 @@ export default function CameraFeed({
   }, [isActive, penaltyConfig, onPostureUpdate]);
 
   return (
-    <div className="relative bg-black rounded-xl overflow-hidden shadow-2xl">
+    <div className="relative bg-black rounded-xl overflow-hidden shadow-2xl border-2 border-blue-900">
       <video
         ref={videoRef}
         className="w-full h-auto hidden"
@@ -105,8 +105,8 @@ export default function CameraFeed({
       <canvas ref={canvasRef} width={640} height={480} className="w-full" />
       {!isActive && (
         <div className="absolute inset-0 bg-slate-900/80 flex items-center justify-center">
-          <p className="text-white text-xl">
-            Click &ldquo;Start Monitoring&rdquo; to begin
+          <p className="text-white text-xl font-bold">
+            🚨 Click &ldquo;Start Patrol&rdquo; to begin 🚨
           </p>
         </div>
       )}

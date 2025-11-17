@@ -4,6 +4,7 @@ import { useState } from "react";
 import CameraFeed from "@/components/camera_feed";
 import PostureScore from "@/components/posture_score";
 import SettingsPanel from "@/components/settings_panel";
+import CopMascot from "@/components/cop_mascot";
 import {
   DEFAULT_POSTURE_ANALYSIS,
   type PostureAnalysis,
@@ -21,15 +22,29 @@ export default function Home() {
     useState<PenaltyConfig>(DEFAULT_PENALTY_CONFIG);
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 p-4">
+    <div className="min-h-screen bg-linear-to-br from-slate-800 via-slate-700 to-slate-900 p-4">
       <div className="max-w-6xl mx-auto">
-        <header className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-slate-800 mb-2">
-            Posture Cop
-          </h1>
-          <p className="text-slate-600">
-            Real-time posture monitoring in your browser
-          </p>
+        <header className="text-center mb-8 relative">
+          {/* Police Siren Background */}
+          <div className="absolute inset-0 -mx-4 overflow-hidden rounded-xl">
+            <div className="absolute inset-0 bg-linear-to-r from-blue-600 via-transparent to-red-600 opacity-30 animate-pulse"></div>
+            <div className="absolute left-0 top-0 bottom-0 w-1/3 bg-linear-to-r from-blue-500 to-transparent opacity-40"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-linear-to-l from-red-500 to-transparent opacity-40"></div>
+          </div>
+
+          {/* Content */}
+          <div className="relative py-6">
+            <div className="flex items-center justify-center gap-4 mb-3">
+              <CopMascot />
+              <h1 className="text-5xl font-bold text-white drop-shadow-lg tracking-tight">
+                Posture Cop
+              </h1>
+              <CopMascot />
+            </div>
+            <p className="text-blue-100 text-lg font-semibold drop-shadow-md">
+              🚨 Keeping Your Posture in Check 🚨
+            </p>
+          </div>
         </header>
 
         <div className="grid lg:grid-cols-5 gap-6">

@@ -9,7 +9,7 @@ import {
 import {
   getPostureAnalysis,
   type PostureAnalysis,
-  DEFAULT_PENALTY_CONFIG,
+  type PenaltyConfig,
 } from "@/lib/posture_logic";
 import {
   PoseLandmarker,
@@ -18,6 +18,7 @@ import {
 
 interface CameraFeedProps {
   isActive: boolean;
+  penaltyConfig: PenaltyConfig;
   onPostureUpdate: (analysis: PostureAnalysis) => void;
   onAlert: (message: string) => void;
 }
@@ -29,6 +30,7 @@ interface PoseResults {
 
 export default function CameraFeed({
   isActive,
+  penaltyConfig,
   onPostureUpdate,
   onAlert,
 }: CameraFeedProps) {
@@ -52,7 +54,7 @@ export default function CameraFeed({
       if (results.poseLandmarks) {
         const analysis = getPostureAnalysis(
           results.poseLandmarks,
-          DEFAULT_PENALTY_CONFIG
+          penaltyConfig
         );
 
         onPostureUpdate(analysis);
@@ -83,7 +85,7 @@ export default function CameraFeed({
     startPoseDetection(videoRef.current, onResults);
 
     return () => stopPoseDetection();
-  }, [isActive, onPostureUpdate, onAlert]);
+  }, [isActive, penaltyConfig, onPostureUpdate, onAlert]);
 
   return (
     <div className="relative bg-black rounded-xl overflow-hidden shadow-2xl">

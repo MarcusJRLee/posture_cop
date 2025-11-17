@@ -24,8 +24,8 @@ export const DEFAULT_PENALTY_CONFIG: PenaltyConfig = {
   },
   neckAnglePenaltyCalcConfig: {
     idealValue: 90,
-    tolerance: 20,
-    penaltyFactor: 2,
+    tolerance: 5,
+    penaltyFactor: 3,
   },
   shoulderAnglePenaltyCalcConfig: {
     idealValue: 0,
@@ -33,8 +33,8 @@ export const DEFAULT_PENALTY_CONFIG: PenaltyConfig = {
     penaltyFactor: 3,
   },
   shouldersEyesWidthRatioPenaltyCalcConfig: {
-    idealValue: 6.0,
-    tolerance: 1,
+    idealValue: 5.5,
+    tolerance: 0.5,
     penaltyFactor: 50,
   },
 };

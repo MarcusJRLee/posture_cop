@@ -8,6 +8,8 @@ import SettingsPanel from "@/components/settings_panel";
 import {
   DEFAULT_POSTURE_ANALYSIS,
   type PostureAnalysis,
+  DEFAULT_PENALTY_CONFIG,
+  type PenaltyConfig,
 } from "@/lib/posture_logic";
 
 /** The main component for the home page. */
@@ -16,6 +18,8 @@ export default function Home() {
   const [postureAnalysis, setPostureAnalysis] = useState<PostureAnalysis>(
     DEFAULT_POSTURE_ANALYSIS
   );
+  const [penaltyConfig, setPenaltyConfig] =
+    useState<PenaltyConfig>(DEFAULT_PENALTY_CONFIG);
   const [alert, setAlert] = useState<string | null>(null);
 
   return (
@@ -30,17 +34,22 @@ export default function Home() {
           </p>
         </header>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
+        <div className="grid lg:grid-cols-5 gap-6">
+          <div className="lg:col-span-3">
             <CameraFeed
               isActive={monitoring}
+              penaltyConfig={penaltyConfig}
               onPostureUpdate={setPostureAnalysis}
               onAlert={setAlert}
             />
           </div>
 
-          <div className="space-y-6">
-            <PostureScore analysis={postureAnalysis} />
+          <div className="lg:col-span-2 space-y-6">
+            <PostureScore
+              analysis={postureAnalysis}
+              config={penaltyConfig}
+              onConfigChange={setPenaltyConfig}
+            />
             <SettingsPanel
               isMonitoring={monitoring}
               onToggle={() => setMonitoring(!monitoring)}

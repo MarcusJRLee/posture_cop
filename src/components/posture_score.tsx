@@ -17,10 +17,12 @@ export default function PostureScore({
     shoulderAngle,
     shouldersEyesWidthRatio,
     neckLengthRatio,
+    shoulderHeight,
     neckAnglePenalty,
     shoulderAnglePenalty,
     shouldersEyesWidthRatioPenalty,
     neckLengthPenalty,
+    shoulderHeightPenalty,
   } = analysis;
 
   const color =
@@ -47,6 +49,10 @@ export default function PostureScore({
       neckLengthPenaltyCalcConfig: {
         ...config.neckLengthPenaltyCalcConfig,
         idealValue: Math.round(neckLengthRatio * 100) / 100,
+      },
+      shoulderHeightPenaltyCalcConfig: {
+        ...config.shoulderHeightPenaltyCalcConfig,
+        idealValue: Math.round(shoulderHeight * 10) / 10, // Round to 1 decimal (already in percentage)
       },
     });
   };
@@ -122,6 +128,42 @@ export default function PostureScore({
               }
               className="w-full px-1 py-0.5 border border-slate-300 rounded text-xs text-center"
               step="0.01"
+            />
+          </div>
+          <div className="grid grid-cols-[1fr_4.5rem_4.5rem_4.5rem] gap-2 items-center">
+            <span className="text-slate-600">Shoulder Height:</span>
+            <span className="font-mono font-semibold text-slate-800 text-center">
+              {shoulderHeight.toFixed(1)}%
+            </span>
+            <input
+              type="number"
+              value={config.shoulderHeightPenaltyCalcConfig.idealValue}
+              onChange={(e) =>
+                onConfigChange({
+                  ...config,
+                  shoulderHeightPenaltyCalcConfig: {
+                    ...config.shoulderHeightPenaltyCalcConfig,
+                    idealValue: parseFloat(e.target.value) || 0,
+                  },
+                })
+              }
+              className="w-full px-1 py-0.5 border border-slate-300 rounded text-xs text-center"
+              step="1"
+            />
+            <input
+              type="number"
+              value={config.shoulderHeightPenaltyCalcConfig.tolerance}
+              onChange={(e) =>
+                onConfigChange({
+                  ...config,
+                  shoulderHeightPenaltyCalcConfig: {
+                    ...config.shoulderHeightPenaltyCalcConfig,
+                    tolerance: parseFloat(e.target.value) || 0,
+                  },
+                })
+              }
+              className="w-full px-1 py-0.5 border border-slate-300 rounded text-xs text-center"
+              step="0.1"
             />
           </div>
           <div className="grid grid-cols-[1fr_4.5rem_4.5rem_4.5rem] gap-2 items-center">
@@ -262,6 +304,27 @@ export default function PostureScore({
             />
             <span className="font-mono font-semibold text-red-600 text-center">
               -{neckLengthPenalty.toFixed(1)}
+            </span>
+          </div>
+          <div className="grid grid-cols-[1fr_4.5rem_4.5rem] gap-2 items-center">
+            <span className="text-slate-600">Shoulder Height:</span>
+            <input
+              type="number"
+              value={config.shoulderHeightPenaltyCalcConfig.penaltyFactor}
+              onChange={(e) =>
+                onConfigChange({
+                  ...config,
+                  shoulderHeightPenaltyCalcConfig: {
+                    ...config.shoulderHeightPenaltyCalcConfig,
+                    penaltyFactor: parseFloat(e.target.value) || 0,
+                  },
+                })
+              }
+              className="w-full px-1 py-0.5 border border-slate-300 rounded text-xs text-center"
+              step="1"
+            />
+            <span className="font-mono font-semibold text-red-600 text-center">
+              -{shoulderHeightPenalty.toFixed(1)}
             </span>
           </div>
           <div className="grid grid-cols-[1fr_4.5rem_4.5rem] gap-2 items-center">

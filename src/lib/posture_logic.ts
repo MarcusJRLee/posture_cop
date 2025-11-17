@@ -5,11 +5,13 @@ export interface PenaltyCalculationConfig {
   idealValue: number;
   tolerance: number;
   penaltyFactor: number;
+  allowAboveIdealRange?: boolean;
 }
 
 /** Configuration for penalty calculations. */
 export interface PenaltyConfig {
   neckLengthPenaltyCalcConfig: PenaltyCalculationConfig;
+  shoulderHeightPenaltyCalcConfig: PenaltyCalculationConfig;
   neckAnglePenaltyCalcConfig: PenaltyCalculationConfig;
   shoulderAnglePenaltyCalcConfig: PenaltyCalculationConfig;
   shouldersEyesWidthRatioPenaltyCalcConfig: PenaltyCalculationConfig;
@@ -21,6 +23,13 @@ export const DEFAULT_PENALTY_CONFIG: PenaltyConfig = {
     idealValue: 0.95,
     tolerance: 0.07,
     penaltyFactor: 500,
+    allowAboveIdealRange: true,
+  },
+  shoulderHeightPenaltyCalcConfig: {
+    idealValue: 25,
+    tolerance: 5,
+    penaltyFactor: 5,
+    allowAboveIdealRange: true,
   },
   neckAnglePenaltyCalcConfig: {
     idealValue: 90,
@@ -48,8 +57,10 @@ export interface PostureAnalysis {
   shoulderAngle: number;
   shouldersEyesWidthRatio: number;
   neckLengthRatio: number;
+  shoulderHeight: number;
   // Penalties for each measurement.
   neckLengthPenalty: number;
+  shoulderHeightPenalty: number;
   neckAnglePenalty: number;
   shoulderAnglePenalty: number;
   shouldersEyesWidthRatioPenalty: number;
@@ -64,8 +75,10 @@ export const DEFAULT_POSTURE_ANALYSIS: PostureAnalysis = {
   shoulderAngle: 0,
   shouldersEyesWidthRatio: 0,
   neckLengthRatio: 0,
+  shoulderHeight: 0,
   // Penalties for each measurement.
   neckLengthPenalty: 0,
+  shoulderHeightPenalty: 0,
   neckAnglePenalty: 0,
   shoulderAnglePenalty: 0,
   shouldersEyesWidthRatioPenalty: 0,
@@ -84,15 +97,14 @@ function calculateDistance(
 /** Calculate width ratio penalty based on deviation from ideal. */
 function calculatePenalty(
   value: number,
-  penaltyCalculation: PenaltyCalculationConfig,
-  allowAboveIdealRange: boolean = false
+  pCalcCfg: PenaltyCalculationConfig
 ): number {
-  if (allowAboveIdealRange && value > penaltyCalculation.idealValue) {
+  if (pCalcCfg.allowAboveIdealRange && value > pCalcCfg.idealValue) {
     return 0;
   }
-  const factor = penaltyCalculation.penaltyFactor;
-  const deviation = Math.abs(value - penaltyCalculation.idealValue);
-  const diff = deviation - penaltyCalculation.tolerance;
+  const factor = pCalcCfg.penaltyFactor;
+  const deviation = Math.abs(value - pCalcCfg.idealValue);
+  const diff = deviation - pCalcCfg.tolerance;
   return diff > 0 ? diff * factor : 0;
 }
 
@@ -121,6 +133,25 @@ export function calculateNeckLengthRatio(
 
   // Return ratio (typical good posture ratio is around 0.8-1.2).
   return neckLength / shoulderWidth;
+}
+
+/**
+ * Calculate the shoulder height as the distance from the center of the shoulders
+ * to the bottom of the screen. This measurement detects if the user is sitting
+ * too low in the frame. Returns a value between 0 and 1, where 1 means shoulders
+ * are at the top of the frame and 0 means at the bottom.
+ */
+export function calculateShoulderHeight(
+  landmarks: NormalizedLandmark[]
+): number {
+  const leftShoulder = landmarks[12];
+  const rightShoulder = landmarks[11];
+
+  // Calculate shoulder midpoint Y coordinate.
+  const shoulderMidY = (leftShoulder.y + rightShoulder.y) / 2;
+
+  // Distance from shoulder to bottom of screen (y=1 is bottom, y=0 is top).
+  return 1 - shoulderMidY;
 }
 
 /** Calculates the neck tilt angle based on pose landmarks. */
@@ -192,6 +223,8 @@ export function getPostureAnalysis(
   config: PenaltyConfig
 ): PostureAnalysis {
   const neckLengthRatio = calculateNeckLengthRatio(landmarks);
+  const shoulderHeightRaw = calculateShoulderHeight(landmarks);
+  const shoulderHeight = shoulderHeightRaw * 100; // Convert to percentage
   const neckAngle = calculateNeckAngle(landmarks);
   const shoulderAngle = calculateShoulderAngle(landmarks);
   const shouldersEyesWidthRatio = calculateShouldersEyesWidthRatio(landmarks);
@@ -202,8 +235,14 @@ export function getPostureAnalysis(
   // This changes when you lean forward or slouch
   const neckLengthPenalty = calculatePenalty(
     neckLengthRatio,
-    config.neckLengthPenaltyCalcConfig,
-    /* allowAboveIdealRange= */ true
+    config.neckLengthPenaltyCalcConfig
+  );
+
+  // Good posture: shoulders should be at ideal height in frame (measured as percentage)
+  // Penalize if shoulders are too low (sitting too low or slouching)
+  const shoulderHeightPenalty = calculatePenalty(
+    shoulderHeight,
+    config.shoulderHeightPenaltyCalcConfig
   );
 
   // Good posture: neck should be vertical (~90 degrees).
@@ -231,6 +270,7 @@ export function getPostureAnalysis(
   score -= shoulderAnglePenalty;
   score -= shouldersEyesWidthRatioPenalty;
   score -= neckLengthPenalty;
+  score -= shoulderHeightPenalty;
 
   return {
     score: Math.max(0, Math.min(100, Math.round(score))),
@@ -238,9 +278,11 @@ export function getPostureAnalysis(
     shoulderAngle,
     shouldersEyesWidthRatio,
     neckLengthRatio,
+    shoulderHeight,
     neckAnglePenalty,
     shoulderAnglePenalty,
     shouldersEyesWidthRatioPenalty,
     neckLengthPenalty,
+    shoulderHeightPenalty,
   };
 }

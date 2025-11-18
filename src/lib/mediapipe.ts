@@ -43,20 +43,31 @@ export const startPoseDetection = async (
   videoElement.srcObject = stream;
   await videoElement.play();
 
-  // Process video frames
+  // Process video frames with throttling (15fps instead of 60fps)
+  const targetFps = 15;
+  const frameDelay = 1000 / targetFps; // ~66ms between frames
+  let lastFrameTime = 0;
+
   const detectPose = async () => {
     if (!poseLandmarker || !videoElement) return;
 
-    const startTimeMs = performance.now();
-    const results = poseLandmarker.detectForVideo(videoElement, startTimeMs);
+    const now = performance.now();
+    const timeSinceLastFrame = now - lastFrameTime;
 
-    // Convert results to match old API format
-    const convertedResults: PoseResults = {
-      image: videoElement,
-      poseLandmarks: results.landmarks[0], // Get first pose landmarks
-    };
+    // Only process frame if enough time has passed
+    if (timeSinceLastFrame >= frameDelay) {
+      lastFrameTime = now;
 
-    onResults(convertedResults);
+      const results = poseLandmarker.detectForVideo(videoElement, now);
+
+      // Convert results to match old API format
+      const convertedResults: PoseResults = {
+        image: videoElement,
+        poseLandmarks: results.landmarks[0], // Get first pose landmarks
+      };
+
+      onResults(convertedResults);
+    }
 
     animationFrameId = requestAnimationFrame(detectPose);
   };

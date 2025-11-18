@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { PostureAnalysis, PenaltyConfig } from "@/lib/posture_logic";
 
 interface PostureScoreProps {
@@ -25,36 +26,106 @@ export default function PostureScore({
     shoulderHeightPenalty,
   } = analysis;
 
+  // Smoothed score for the progress bar (exponential smoothing)
+  const [smoothedScore, setSmoothedScore] = useState(score);
+
+  // Local config state for debounced updates
+  const [localConfig, setLocalConfig] = useState<PenaltyConfig>(config);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Update local config when prop changes (e.g., from "Set Baseline" button)
+  useEffect(() => {
+    setLocalConfig(config);
+  }, [config]);
+
+  // Debounce config updates to parent (wait 800ms after user stops typing)
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      onConfigChange(localConfig);
+    }, 800);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [localConfig, onConfigChange]);
+
+  // Helper to remove leading zeros from input value
+  const removeLeadingZeros = useCallback((value: string): string => {
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? "0" : parsed.toString();
+  }, []);
+
+  useEffect(() => {
+    // Exponential smoothing: gradually move towards target score
+    // Higher smoothing factor = faster response (0.15 = smooth but responsive)
+    const smoothingFactor = 0.15;
+
+    const interval = setInterval(() => {
+      setSmoothedScore((prevScore) => {
+        const diff = score - prevScore;
+        // If very close, snap to exact value to avoid endless tiny updates
+        if (Math.abs(diff) < 0.5) {
+          return score;
+        }
+        return prevScore + diff * smoothingFactor;
+      });
+    }, 50); // Update every 50ms for smooth animation
+
+    return () => clearInterval(interval);
+  }, [score]);
+
+  // Use smoothed score for progress bar colors and display
+  const displayScore = Math.round(smoothedScore);
+
   const color =
-    score > 80
+    displayScore > 80
       ? "text-green-600"
-      : score > 50
+      : displayScore > 50
       ? "text-yellow-600"
-      : "text-red-600";
+      : "text-[#f73535]";
+
+  const barColor =
+    displayScore > 80
+      ? "bg-green-500"
+      : displayScore > 50
+      ? "bg-yellow-500"
+      : "bg-red-500";
 
   const handleBaseline = () => {
-    onConfigChange({
+    const newConfig = {
       neckAnglePenaltyCalcConfig: {
-        ...config.neckAnglePenaltyCalcConfig,
+        ...localConfig.neckAnglePenaltyCalcConfig,
         idealValue: Math.round(neckAngle),
       },
       shoulderAnglePenaltyCalcConfig: {
-        ...config.shoulderAnglePenaltyCalcConfig,
+        ...localConfig.shoulderAnglePenaltyCalcConfig,
         idealValue: Math.round(shoulderAngle),
       },
       shouldersEyesWidthRatioPenaltyCalcConfig: {
-        ...config.shouldersEyesWidthRatioPenaltyCalcConfig,
+        ...localConfig.shouldersEyesWidthRatioPenaltyCalcConfig,
         idealValue: Math.round(shouldersEyesWidthRatio * 100) / 100,
       },
       neckLengthPenaltyCalcConfig: {
-        ...config.neckLengthPenaltyCalcConfig,
+        ...localConfig.neckLengthPenaltyCalcConfig,
         idealValue: Math.round(neckLengthRatio * 100) / 100,
       },
       shoulderHeightPenaltyCalcConfig: {
-        ...config.shoulderHeightPenaltyCalcConfig,
+        ...localConfig.shoulderHeightPenaltyCalcConfig,
         idealValue: Math.round(shoulderHeight * 10) / 10, // Round to 1 decimal (already in percentage)
       },
-    });
+    };
+    setLocalConfig(newConfig);
+    // Clear debounce timer and apply immediately for baseline
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    onConfigChange(newConfig);
   };
 
   return (
@@ -62,17 +133,13 @@ export default function PostureScore({
       <h3 className="text-lg font-bold text-blue-400 mb-2 uppercase tracking-wide">
         🚔 Posture Report
       </h3>
-      <div className={`text-5xl font-bold text-center ${color}`}>{score}</div>
+      <div className={`text-5xl font-bold text-center ${color}`}>
+        {displayScore}
+      </div>
       <div className="mt-3 h-3 bg-slate-700 rounded-full overflow-hidden border border-slate-600">
         <div
-          className={`h-full transition-all duration-500 ${
-            score > 80
-              ? "bg-green-500"
-              : score > 50
-              ? "bg-yellow-500"
-              : "bg-red-500"
-          }`}
-          style={{ width: `${score}%` }}
+          className={`h-full transition-colors duration-300 ${barColor}`}
+          style={{ width: `${smoothedScore}%` }}
         />
       </div>
 
@@ -101,31 +168,37 @@ export default function PostureScore({
             </span>
             <input
               type="number"
-              value={config.neckLengthPenaltyCalcConfig.idealValue}
+              value={localConfig.neckLengthPenaltyCalcConfig.idealValue}
               onChange={(e) =>
-                onConfigChange({
-                  ...config,
+                setLocalConfig({
+                  ...localConfig,
                   neckLengthPenaltyCalcConfig: {
-                    ...config.neckLengthPenaltyCalcConfig,
+                    ...localConfig.neckLengthPenaltyCalcConfig,
                     idealValue: parseFloat(e.target.value) || 0,
                   },
                 })
               }
+              onBlur={(e) => {
+                e.target.value = removeLeadingZeros(e.target.value);
+              }}
               className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="0.01"
             />
             <input
               type="number"
-              value={config.neckLengthPenaltyCalcConfig.tolerance}
+              value={localConfig.neckLengthPenaltyCalcConfig.tolerance}
               onChange={(e) =>
-                onConfigChange({
-                  ...config,
+                setLocalConfig({
+                  ...localConfig,
                   neckLengthPenaltyCalcConfig: {
-                    ...config.neckLengthPenaltyCalcConfig,
+                    ...localConfig.neckLengthPenaltyCalcConfig,
                     tolerance: parseFloat(e.target.value) || 0,
                   },
                 })
               }
+              onBlur={(e) => {
+                e.target.value = removeLeadingZeros(e.target.value);
+              }}
               className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="0.01"
             />
@@ -137,31 +210,37 @@ export default function PostureScore({
             </span>
             <input
               type="number"
-              value={config.shoulderHeightPenaltyCalcConfig.idealValue}
+              value={localConfig.shoulderHeightPenaltyCalcConfig.idealValue}
               onChange={(e) =>
-                onConfigChange({
-                  ...config,
+                setLocalConfig({
+                  ...localConfig,
                   shoulderHeightPenaltyCalcConfig: {
-                    ...config.shoulderHeightPenaltyCalcConfig,
+                    ...localConfig.shoulderHeightPenaltyCalcConfig,
                     idealValue: parseFloat(e.target.value) || 0,
                   },
                 })
               }
+              onBlur={(e) => {
+                e.target.value = removeLeadingZeros(e.target.value);
+              }}
               className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="1"
             />
             <input
               type="number"
-              value={config.shoulderHeightPenaltyCalcConfig.tolerance}
+              value={localConfig.shoulderHeightPenaltyCalcConfig.tolerance}
               onChange={(e) =>
-                onConfigChange({
-                  ...config,
+                setLocalConfig({
+                  ...localConfig,
                   shoulderHeightPenaltyCalcConfig: {
-                    ...config.shoulderHeightPenaltyCalcConfig,
+                    ...localConfig.shoulderHeightPenaltyCalcConfig,
                     tolerance: parseFloat(e.target.value) || 0,
                   },
                 })
               }
+              onBlur={(e) => {
+                e.target.value = removeLeadingZeros(e.target.value);
+              }}
               className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="0.1"
             />
@@ -173,31 +252,37 @@ export default function PostureScore({
             </span>
             <input
               type="number"
-              value={config.neckAnglePenaltyCalcConfig.idealValue}
+              value={localConfig.neckAnglePenaltyCalcConfig.idealValue}
               onChange={(e) =>
-                onConfigChange({
-                  ...config,
+                setLocalConfig({
+                  ...localConfig,
                   neckAnglePenaltyCalcConfig: {
-                    ...config.neckAnglePenaltyCalcConfig,
+                    ...localConfig.neckAnglePenaltyCalcConfig,
                     idealValue: parseFloat(e.target.value) || 0,
                   },
                 })
               }
+              onBlur={(e) => {
+                e.target.value = removeLeadingZeros(e.target.value);
+              }}
               className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="0.1"
             />
             <input
               type="number"
-              value={config.neckAnglePenaltyCalcConfig.tolerance}
+              value={localConfig.neckAnglePenaltyCalcConfig.tolerance}
               onChange={(e) =>
-                onConfigChange({
-                  ...config,
+                setLocalConfig({
+                  ...localConfig,
                   neckAnglePenaltyCalcConfig: {
-                    ...config.neckAnglePenaltyCalcConfig,
+                    ...localConfig.neckAnglePenaltyCalcConfig,
                     tolerance: parseFloat(e.target.value) || 0,
                   },
                 })
               }
+              onBlur={(e) => {
+                e.target.value = removeLeadingZeros(e.target.value);
+              }}
               className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="0.1"
             />
@@ -209,67 +294,79 @@ export default function PostureScore({
             </span>
             <input
               type="number"
-              value={config.shoulderAnglePenaltyCalcConfig.idealValue}
+              value={localConfig.shoulderAnglePenaltyCalcConfig.idealValue}
               onChange={(e) =>
-                onConfigChange({
-                  ...config,
+                setLocalConfig({
+                  ...localConfig,
                   shoulderAnglePenaltyCalcConfig: {
-                    ...config.shoulderAnglePenaltyCalcConfig,
+                    ...localConfig.shoulderAnglePenaltyCalcConfig,
                     idealValue: parseFloat(e.target.value) || 0,
                   },
                 })
               }
+              onBlur={(e) => {
+                e.target.value = removeLeadingZeros(e.target.value);
+              }}
               className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="0.1"
             />
             <input
               type="number"
-              value={config.shoulderAnglePenaltyCalcConfig.tolerance}
+              value={localConfig.shoulderAnglePenaltyCalcConfig.tolerance}
               onChange={(e) =>
-                onConfigChange({
-                  ...config,
+                setLocalConfig({
+                  ...localConfig,
                   shoulderAnglePenaltyCalcConfig: {
-                    ...config.shoulderAnglePenaltyCalcConfig,
+                    ...localConfig.shoulderAnglePenaltyCalcConfig,
                     tolerance: parseFloat(e.target.value) || 0,
                   },
                 })
               }
+              onBlur={(e) => {
+                e.target.value = removeLeadingZeros(e.target.value);
+              }}
               className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="0.1"
             />
           </div>
           <div className="grid grid-cols-[1fr_4.5rem_4.5rem_4.5rem] gap-2 items-center">
-            <span className="text-slate-300">Width Ratio:</span>
+            <span className="text-slate-300">Neck Tilt Ratio:</span>
             <span className="font-mono font-semibold text-white text-center">
               {shouldersEyesWidthRatio.toFixed(2)}
             </span>
             <input
               type="number"
-              value={config.shouldersEyesWidthRatioPenaltyCalcConfig.idealValue}
+              value={localConfig.shouldersEyesWidthRatioPenaltyCalcConfig.idealValue}
               onChange={(e) =>
-                onConfigChange({
-                  ...config,
+                setLocalConfig({
+                  ...localConfig,
                   shouldersEyesWidthRatioPenaltyCalcConfig: {
-                    ...config.shouldersEyesWidthRatioPenaltyCalcConfig,
+                    ...localConfig.shouldersEyesWidthRatioPenaltyCalcConfig,
                     idealValue: parseFloat(e.target.value) || 0,
                   },
                 })
               }
+              onBlur={(e) => {
+                e.target.value = removeLeadingZeros(e.target.value);
+              }}
               className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="0.1"
             />
             <input
               type="number"
-              value={config.shouldersEyesWidthRatioPenaltyCalcConfig.tolerance}
+              value={localConfig.shouldersEyesWidthRatioPenaltyCalcConfig.tolerance}
               onChange={(e) =>
-                onConfigChange({
-                  ...config,
+                setLocalConfig({
+                  ...localConfig,
                   shouldersEyesWidthRatioPenaltyCalcConfig: {
-                    ...config.shouldersEyesWidthRatioPenaltyCalcConfig,
+                    ...localConfig.shouldersEyesWidthRatioPenaltyCalcConfig,
                     tolerance: parseFloat(e.target.value) || 0,
                   },
                 })
               }
+              onBlur={(e) => {
+                e.target.value = removeLeadingZeros(e.target.value);
+              }}
               className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="0.1"
             />
@@ -289,20 +386,23 @@ export default function PostureScore({
             <span className="text-slate-300">Neck Length:</span>
             <input
               type="number"
-              value={config.neckLengthPenaltyCalcConfig.penaltyFactor}
+              value={localConfig.neckLengthPenaltyCalcConfig.penaltyFactor}
               onChange={(e) =>
-                onConfigChange({
-                  ...config,
+                setLocalConfig({
+                  ...localConfig,
                   neckLengthPenaltyCalcConfig: {
-                    ...config.neckLengthPenaltyCalcConfig,
+                    ...localConfig.neckLengthPenaltyCalcConfig,
                     penaltyFactor: parseFloat(e.target.value) || 0,
                   },
                 })
               }
+              onBlur={(e) => {
+                e.target.value = removeLeadingZeros(e.target.value);
+              }}
               className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="10"
             />
-            <span className="font-mono font-semibold text-red-600 text-center">
+            <span className="font-mono font-semibold text-[#f73535] text-center">
               -{neckLengthPenalty.toFixed(1)}
             </span>
           </div>
@@ -310,20 +410,23 @@ export default function PostureScore({
             <span className="text-slate-300">Shoulder Height:</span>
             <input
               type="number"
-              value={config.shoulderHeightPenaltyCalcConfig.penaltyFactor}
+              value={localConfig.shoulderHeightPenaltyCalcConfig.penaltyFactor}
               onChange={(e) =>
-                onConfigChange({
-                  ...config,
+                setLocalConfig({
+                  ...localConfig,
                   shoulderHeightPenaltyCalcConfig: {
-                    ...config.shoulderHeightPenaltyCalcConfig,
+                    ...localConfig.shoulderHeightPenaltyCalcConfig,
                     penaltyFactor: parseFloat(e.target.value) || 0,
                   },
                 })
               }
+              onBlur={(e) => {
+                e.target.value = removeLeadingZeros(e.target.value);
+              }}
               className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="1"
             />
-            <span className="font-mono font-semibold text-red-600 text-center">
+            <span className="font-mono font-semibold text-[#f73535] text-center">
               -{shoulderHeightPenalty.toFixed(1)}
             </span>
           </div>
@@ -331,20 +434,23 @@ export default function PostureScore({
             <span className="text-slate-300">Neck Angle:</span>
             <input
               type="number"
-              value={config.neckAnglePenaltyCalcConfig.penaltyFactor}
+              value={localConfig.neckAnglePenaltyCalcConfig.penaltyFactor}
               onChange={(e) =>
-                onConfigChange({
-                  ...config,
+                setLocalConfig({
+                  ...localConfig,
                   neckAnglePenaltyCalcConfig: {
-                    ...config.neckAnglePenaltyCalcConfig,
+                    ...localConfig.neckAnglePenaltyCalcConfig,
                     penaltyFactor: parseFloat(e.target.value) || 0,
                   },
                 })
               }
+              onBlur={(e) => {
+                e.target.value = removeLeadingZeros(e.target.value);
+              }}
               className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="0.1"
             />
-            <span className="font-mono font-semibold text-red-600 text-center">
+            <span className="font-mono font-semibold text-[#f73535] text-center">
               -{neckAnglePenalty.toFixed(1)}
             </span>
           </div>
@@ -352,43 +458,49 @@ export default function PostureScore({
             <span className="text-slate-300">Shoulder Tilt:</span>
             <input
               type="number"
-              value={config.shoulderAnglePenaltyCalcConfig.penaltyFactor}
+              value={localConfig.shoulderAnglePenaltyCalcConfig.penaltyFactor}
               onChange={(e) =>
-                onConfigChange({
-                  ...config,
+                setLocalConfig({
+                  ...localConfig,
                   shoulderAnglePenaltyCalcConfig: {
-                    ...config.shoulderAnglePenaltyCalcConfig,
+                    ...localConfig.shoulderAnglePenaltyCalcConfig,
                     penaltyFactor: parseFloat(e.target.value) || 0,
                   },
                 })
               }
+              onBlur={(e) => {
+                e.target.value = removeLeadingZeros(e.target.value);
+              }}
               className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="0.1"
             />
-            <span className="font-mono font-semibold text-red-600 text-center">
+            <span className="font-mono font-semibold text-[#f73535] text-center">
               -{shoulderAnglePenalty.toFixed(1)}
             </span>
           </div>
           <div className="grid grid-cols-[1fr_4.5rem_4.5rem] gap-2 items-center">
-            <span className="text-slate-300">Width Ratio:</span>
+            <span className="text-slate-300">Neck Tilt Ratio:</span>
             <input
               type="number"
               value={
-                config.shouldersEyesWidthRatioPenaltyCalcConfig.penaltyFactor
+                localConfig.shouldersEyesWidthRatioPenaltyCalcConfig.penaltyFactor
               }
               onChange={(e) =>
-                onConfigChange({
-                  ...config,
+                setLocalConfig({
+                  ...localConfig,
                   shouldersEyesWidthRatioPenaltyCalcConfig: {
-                    ...config.shouldersEyesWidthRatioPenaltyCalcConfig,
+                    ...localConfig.shouldersEyesWidthRatioPenaltyCalcConfig,
                     penaltyFactor: parseFloat(e.target.value) || 0,
                   },
                 })
               }
+              onBlur={(e) => {
+                e.target.value = removeLeadingZeros(e.target.value);
+              }}
               className="w-full px-1 py-0.5 border border-slate-600 bg-slate-700 text-white rounded text-xs text-center"
               step="1"
             />
-            <span className="font-mono font-semibold text-red-600 text-center">
+            <span className="font-mono font-semibold text-[#f73535] text-center">
               -{shouldersEyesWidthRatioPenalty.toFixed(1)}
             </span>
           </div>

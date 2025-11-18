@@ -26,9 +26,9 @@ export const DEFAULT_PENALTY_CONFIG: PenaltyConfig = {
     allowAboveIdealRange: true,
   },
   shoulderHeightPenaltyCalcConfig: {
-    idealValue: 25,
-    tolerance: 5,
-    penaltyFactor: 5,
+    idealValue: 20,
+    tolerance: 3,
+    penaltyFactor: 20,
     allowAboveIdealRange: true,
   },
   neckAnglePenaltyCalcConfig: {

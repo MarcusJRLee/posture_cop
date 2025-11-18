@@ -48,23 +48,23 @@ export default function Home() {
         </header>
 
         <div className="grid lg:grid-cols-5 gap-6">
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 space-y-6">
             <CameraFeed
               isActive={monitoring}
               penaltyConfig={penaltyConfig}
               onPostureUpdate={setPostureAnalysis}
             />
+            <SettingsPanel
+              isMonitoring={monitoring}
+              onToggle={() => setMonitoring(!monitoring)}
+            />
           </div>
 
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2">
             <PostureScore
               analysis={postureAnalysis}
               config={penaltyConfig}
               onConfigChange={setPenaltyConfig}
-            />
-            <SettingsPanel
-              isMonitoring={monitoring}
-              onToggle={() => setMonitoring(!monitoring)}
             />
           </div>
         </div>

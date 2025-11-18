@@ -38,6 +38,10 @@ export default function CameraFeed({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [currentScore, setCurrentScore] = useState<number>(100);
 
+  // Throttle state updates to reduce re-renders (update at most every 150ms).
+  const lastUpdateTimeRef = useRef<number>(0);
+  const UPDATE_INTERVAL_MS = 50; // For reference: 60 hertz is 16.66 ms.
+
   const {
     warningCountdown,
     recoveryCountdown,
@@ -67,8 +71,13 @@ export default function CameraFeed({
           penaltyConfig
         );
 
-        onPostureUpdate(analysis);
-        setCurrentScore(analysis.score);
+        // Throttle state updates to reduce re-renders
+        const now = performance.now();
+        if (now - lastUpdateTimeRef.current >= UPDATE_INTERVAL_MS) {
+          lastUpdateTimeRef.current = now;
+          onPostureUpdate(analysis);
+          setCurrentScore(analysis.score);
+        }
 
         // Draw skeleton using new DrawingUtils API
         const drawingUtils = new DrawingUtils(ctx);

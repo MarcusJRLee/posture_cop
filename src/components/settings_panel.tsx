@@ -31,9 +31,7 @@ export default function SettingsPanel({
           onChange={onSirenToggle}
           className="w-5 h-5 rounded border-2 border-slate-400 bg-slate-600 checked:bg-blue-600 checked:border-blue-500 cursor-pointer"
         />
-        <span className="text-slate-200 font-medium flex-1">
-          Enable Siren Alarm
-        </span>
+        <span className="text-slate-200 font-medium flex-1">Alarm Enabled</span>
       </label>
 
       <div className="text-sm text-slate-300 space-y-2 border-t border-slate-600 pt-4">

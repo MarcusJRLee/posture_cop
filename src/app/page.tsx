@@ -20,6 +20,20 @@ export default function Home() {
   );
   const [penaltyConfig, setPenaltyConfig] =
     useState<PenaltyConfig>(DEFAULT_PENALTY_CONFIG);
+  // Load notification preference from localStorage on mount using lazy initialization
+  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(
+    () => {
+      if (typeof window === "undefined") return false;
+      const stored = localStorage.getItem("postureCopNotifications");
+      return stored === "true";
+    }
+  );
+
+  // Save notification preference to localStorage when it changes
+  const handleNotificationsToggle = (enabled: boolean) => {
+    setNotificationsEnabled(enabled);
+    localStorage.setItem("postureCopNotifications", String(enabled));
+  };
 
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-800 via-slate-700 to-slate-900 p-4">
@@ -53,10 +67,13 @@ export default function Home() {
               isActive={monitoring}
               penaltyConfig={penaltyConfig}
               onPostureUpdate={setPostureAnalysis}
+              notificationsEnabled={notificationsEnabled}
             />
             <SettingsPanel
               isMonitoring={monitoring}
               onToggle={() => setMonitoring(!monitoring)}
+              notificationsEnabled={notificationsEnabled}
+              onNotificationsToggle={handleNotificationsToggle}
             />
           </div>
 

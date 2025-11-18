@@ -15,8 +15,14 @@ interface PostureAlarmState {
  * When score drops below 80, starts a 5-second warning countdown.
  * If score doesn't improve, triggers an alarm siren.
  * When score recovers to 90+, starts a 2-second recovery countdown before stopping the alarm.
+ *
+ * @param currentScore - The current posture score (0-100)
+ * @param notificationsEnabled - Whether to show browser notifications when alarm triggers
  */
-export function usePostureAlarm(currentScore: number): PostureAlarmState {
+export function usePostureAlarm(
+  currentScore: number,
+  notificationsEnabled: boolean = false
+): PostureAlarmState {
   const audioContextRef = useRef<AudioContext | null>(null);
   const oscillatorRef = useRef<OscillatorNode | null>(null);
   const gainNodeRef = useRef<GainNode | null>(null);
@@ -106,8 +112,23 @@ export function usePostureAlarm(currentScore: number): PostureAlarmState {
       setIsAlarmPlaying(true);
       setWarningCountdown(null);
       startSiren();
+
+      // Show browser notification if enabled and permission granted
+      if (
+        notificationsEnabled &&
+        typeof window !== "undefined" &&
+        "Notification" in window &&
+        Notification.permission === "granted"
+      ) {
+        new Notification("🚨 Posture Cop Alert!", {
+          body: "Your posture needs attention! Straighten your back now!",
+          icon: "/favicon.ico",
+          tag: "posture-alert",
+          requireInteraction: false,
+        });
+      }
     }
-  }, [warningCountdown]);
+  }, [warningCountdown, notificationsEnabled]);
 
   // Recovery countdown interval effect
   useEffect(() => {

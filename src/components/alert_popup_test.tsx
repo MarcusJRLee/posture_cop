@@ -66,6 +66,21 @@ describe("AlertPopup", () => {
     expect(popup.className).toContain("bg-yellow-600");
   });
 
+  it("should show orange background when countdown is 2 or less", () => {
+    const onClose = jest.fn();
+    const { container } = render(
+      <AlertPopup
+        message="Test alert"
+        countdown={2}
+        isAlarmActive={false}
+        onClose={onClose}
+      />
+    );
+
+    const popup = container.firstChild as HTMLElement;
+    expect(popup.className).toContain("bg-orange-600");
+  });
+
   it("should show red background and pulse when alarm is active", () => {
     const onClose = jest.fn();
     const { container } = render(

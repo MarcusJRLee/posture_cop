@@ -20,6 +20,7 @@ export default function Home() {
   );
   const [penaltyConfig, setPenaltyConfig] =
     useState<PenaltyConfig>(DEFAULT_PENALTY_CONFIG);
+  const [sirenEnabled, setSirenEnabled] = useState<boolean>(true);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-800 via-slate-700 to-slate-900 p-4">
@@ -53,10 +54,13 @@ export default function Home() {
               isActive={monitoring}
               penaltyConfig={penaltyConfig}
               onPostureUpdate={setPostureAnalysis}
+              sirenEnabled={sirenEnabled}
             />
             <SettingsPanel
               isMonitoring={monitoring}
               onToggle={() => setMonitoring(!monitoring)}
+              sirenEnabled={sirenEnabled}
+              onSirenToggle={() => setSirenEnabled(!sirenEnabled)}
             />
           </div>
 

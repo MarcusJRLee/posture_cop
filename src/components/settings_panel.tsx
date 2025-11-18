@@ -5,6 +5,8 @@ import { useState } from "react";
 interface SettingsPanelProps {
   isMonitoring: boolean;
   onToggle: () => void;
+  sirenEnabled: boolean;
+  onSirenToggle: () => void;
   notificationsEnabled: boolean;
   onNotificationsToggle: (enabled: boolean) => void;
 }
@@ -12,6 +14,8 @@ interface SettingsPanelProps {
 export default function SettingsPanel({
   isMonitoring,
   onToggle,
+  sirenEnabled,
+  onSirenToggle,
   notificationsEnabled,
   onNotificationsToggle,
 }: SettingsPanelProps) {
@@ -61,14 +65,26 @@ export default function SettingsPanel({
       </button>
 
       <div className="border-t border-slate-600 pt-4 space-y-3">
-        <label className="flex items-center gap-3 cursor-pointer group">
+        <label className="flex items-center gap-3 p-3 bg-slate-700/50 rounded-lg cursor-pointer hover:bg-slate-700 transition-colors">
+          <input
+            type="checkbox"
+            checked={sirenEnabled}
+            onChange={onSirenToggle}
+            className="w-5 h-5 rounded border-2 border-slate-400 bg-slate-600 checked:bg-blue-600 checked:border-blue-500 cursor-pointer"
+          />
+          <span className="text-slate-200 font-medium flex-1">
+            Enable Siren Alarm
+          </span>
+        </label>
+
+        <label className="flex items-center gap-3 p-3 bg-slate-700/50 rounded-lg cursor-pointer hover:bg-slate-700 transition-colors group">
           <input
             type="checkbox"
             checked={notificationsEnabled}
             onChange={handleNotificationToggle}
-            className="w-5 h-5 rounded border-2 border-slate-500 bg-slate-700 checked:bg-blue-600 checked:border-blue-600 cursor-pointer transition-colors"
+            className="w-5 h-5 rounded border-2 border-slate-400 bg-slate-600 checked:bg-blue-600 checked:border-blue-500 cursor-pointer transition-colors"
           />
-          <span className="text-sm text-slate-300 group-hover:text-white transition-colors">
+          <span className="text-slate-200 font-medium flex-1">
             Enable Browser Notifications
           </span>
         </label>

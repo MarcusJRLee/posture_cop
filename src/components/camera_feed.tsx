@@ -22,6 +22,7 @@ interface CameraFeedProps {
   isActive: boolean;
   penaltyConfig: PenaltyConfig;
   onPostureUpdate: (analysis: PostureAnalysis) => void;
+  sirenEnabled: boolean;
   notificationsEnabled: boolean;
 }
 
@@ -34,6 +35,7 @@ export default function CameraFeed({
   isActive,
   penaltyConfig,
   onPostureUpdate,
+  sirenEnabled,
   notificationsEnabled,
 }: CameraFeedProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -51,7 +53,7 @@ export default function CameraFeed({
     showCountdown,
     countdownMessage,
     dismissAlarm,
-  } = usePostureAlarm(currentScore, notificationsEnabled);
+  } = usePostureAlarm(currentScore, sirenEnabled, notificationsEnabled);
 
   useEffect(() => {
     if (!isActive || !videoRef.current) return;

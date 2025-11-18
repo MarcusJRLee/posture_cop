@@ -17,11 +17,13 @@ interface PostureAlarmState {
  * When score recovers to 90+, starts a 2-second recovery countdown before stopping the alarm.
  *
  * @param currentScore - The current posture score (0-100)
+ * @param sirenEnabled - Whether to play the audio siren when alarm triggers
  * @param notificationsEnabled - Whether to show browser notifications when alarm triggers
  */
 export function usePostureAlarm(
   currentScore: number,
-  notificationsEnabled: boolean = false
+  sirenEnabled = true,
+  notificationsEnabled = false
 ): PostureAlarmState {
   const audioContextRef = useRef<AudioContext | null>(null);
   const oscillatorRef = useRef<OscillatorNode | null>(null);
@@ -111,7 +113,11 @@ export function usePostureAlarm(
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsAlarmPlaying(true);
       setWarningCountdown(null);
-      startSiren();
+
+      // Start siren if enabled
+      if (sirenEnabled) {
+        startSiren();
+      }
 
       // Show browser notification if enabled and permission granted
       if (
@@ -128,7 +134,7 @@ export function usePostureAlarm(
         });
       }
     }
-  }, [warningCountdown, notificationsEnabled]);
+  }, [warningCountdown, sirenEnabled, notificationsEnabled]);
 
   // Recovery countdown interval effect
   useEffect(() => {
@@ -145,6 +151,13 @@ export function usePostureAlarm(
       stopSiren();
     }
   }, [recoveryCountdown]);
+
+  // Stop siren if disabled while playing
+  useEffect(() => {
+    if (!sirenEnabled && isAlarmPlaying) {
+      stopSiren();
+    }
+  }, [sirenEnabled, isAlarmPlaying]);
 
   // Cleanup on unmount
   useEffect(() => {

@@ -27,24 +27,26 @@ export default function Home() {
       <div className="max-w-6xl mx-auto">
         <header className="text-center mb-8 relative">
           {/* Police Siren Background */}
-          <div className="absolute inset-0 -mx-4 overflow-hidden rounded-xl">
+          <div className="absolute inset-0 -mx-4 overflow-hidden rounded-xl z-2">
             <div className="absolute inset-0 bg-linear-to-r from-blue-600 via-transparent to-red-600 opacity-30 animate-pulse"></div>
             <div className="absolute left-0 top-0 bottom-0 w-1/3 bg-linear-to-r from-blue-500 to-transparent opacity-40"></div>
             <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-linear-to-l from-red-500 to-transparent opacity-40"></div>
           </div>
 
           {/* Content */}
-          <div className="relative py-6">
-            <div className="flex items-center justify-center gap-4 mb-3">
-              <CopMascot />
-              <h1 className="text-5xl font-bold text-white drop-shadow-lg tracking-tight">
-                Posture Cop
-              </h1>
-              <CopMascot />
+          <div className="flex items-center justify-center">
+            <CopMascot />
+            <div className="relative py-6">
+              <div className="flex items-center justify-center gap-4 mb-3">
+                <h1 className="text-5xl font-bold text-white drop-shadow-lg tracking-tight">
+                  Posture Cop
+                </h1>
+              </div>
+              <p className="text-blue-100 text-lg font-semibold drop-shadow-md whitespace-nowrap">
+                🚨 Keeping Your Posture in Check 🚨
+              </p>
             </div>
-            <p className="text-blue-100 text-lg font-semibold drop-shadow-md">
-              🚨 Keeping Your Posture in Check 🚨
-            </p>
+            <CopMascot reflect />
           </div>
         </header>
 

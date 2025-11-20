@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { PostureAnalysis, PenaltyConfig } from "@/lib/posture_logic";
-
 interface PostureScoreProps {
   analysis: PostureAnalysis;
   config: PenaltyConfig;
@@ -336,7 +335,9 @@ export default function PostureScore({
             </span>
             <input
               type="number"
-              value={localConfig.shouldersEyesWidthRatioPenaltyCalcConfig.idealValue}
+              value={
+                localConfig.shouldersEyesWidthRatioPenaltyCalcConfig.idealValue
+              }
               onChange={(e) =>
                 setLocalConfig({
                   ...localConfig,
@@ -354,7 +355,9 @@ export default function PostureScore({
             />
             <input
               type="number"
-              value={localConfig.shouldersEyesWidthRatioPenaltyCalcConfig.tolerance}
+              value={
+                localConfig.shouldersEyesWidthRatioPenaltyCalcConfig.tolerance
+              }
               onChange={(e) =>
                 setLocalConfig({
                   ...localConfig,
@@ -483,7 +486,8 @@ export default function PostureScore({
             <input
               type="number"
               value={
-                localConfig.shouldersEyesWidthRatioPenaltyCalcConfig.penaltyFactor
+                localConfig.shouldersEyesWidthRatioPenaltyCalcConfig
+                  .penaltyFactor
               }
               onChange={(e) =>
                 setLocalConfig({
@@ -503,6 +507,21 @@ export default function PostureScore({
             <span className="font-mono font-semibold text-[#f73535] text-center">
               -{shouldersEyesWidthRatioPenalty.toFixed(1)}
             </span>
+          </div>
+        </div>
+
+        {/* Privacy and Open Source Info */}
+        <div className="mt-4 pt-4 border-t border-slate-600">
+          <div className="text-sm text-slate-300 space-y-1">
+            <p className="flex items-center gap-2">
+              <span className="text-green-400">✓</span> 100% Browser-Based
+            </p>
+            <p className="flex items-center gap-2">
+              <span className="text-green-400">✓</span> Privacy Protected
+            </p>
+            <p className="flex items-center gap-2">
+              <span className="text-green-400">✓</span> Open Source
+            </p>
           </div>
         </div>
       </div>

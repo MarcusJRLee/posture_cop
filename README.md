@@ -37,9 +37,13 @@ npx create-next-app@latest posture_cop \
 
 # Installed dependencies.
 npm i @vercel/speed-insights @vercel/analytics
+npm i @supabase/supabase-js stripe @stripe/stripe-js
 
 # Install MediaPipe: mediapipe.dev
 # https://www.npmjs.com/package/@mediapipe/tasks-vision
+# Dev Site for Mediapipe Guide: https://ai.google.dev/edge/mediapipe/solutions/guide
+# Dev Site for Tasks Vision: https://ai.google.dev/edge/api/mediapipe/js/tasks-vision
+# Dev Site for Pose Landmarkers: https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker
 npm i @mediapipe/tasks-vision
 
 # Vercel CLI (optional but handy).

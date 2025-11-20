@@ -43,7 +43,7 @@ export const DEFAULT_PENALTY_CONFIG: PenaltyConfig = {
   },
   shouldersEyesWidthRatioPenaltyCalcConfig: {
     idealValue: 5.2,
-    tolerance: 0.5,
+    tolerance: 1.5,
     penaltyFactor: 50,
   },
 };

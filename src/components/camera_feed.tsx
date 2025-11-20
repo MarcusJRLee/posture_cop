@@ -24,6 +24,7 @@ interface CameraFeedProps {
   onPostureUpdate: (analysis: PostureAnalysis) => void;
   sirenEnabled: boolean;
   notificationsEnabled: boolean;
+  onAlarmStateChange?: (isAlarmPlaying: boolean) => void;
 }
 
 interface PoseResults {
@@ -37,6 +38,7 @@ export default function CameraFeed({
   onPostureUpdate,
   sirenEnabled,
   notificationsEnabled,
+  onAlarmStateChange,
 }: CameraFeedProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -54,6 +56,11 @@ export default function CameraFeed({
     countdownMessage,
     dismissAlarm,
   } = usePostureAlarm(currentScore, sirenEnabled, notificationsEnabled);
+
+  // Notify parent when alarm state changes
+  useEffect(() => {
+    onAlarmStateChange?.(isAlarmPlaying);
+  }, [isAlarmPlaying, onAlarmStateChange]);
 
   useEffect(() => {
     if (!isActive || !videoRef.current) return;

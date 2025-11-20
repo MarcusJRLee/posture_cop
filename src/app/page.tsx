@@ -29,6 +29,7 @@ export default function Home() {
       return stored === "true";
     }
   );
+  const [isAlarmPlaying, setIsAlarmPlaying] = useState<boolean>(false);
 
   // Save notification preference to localStorage when it changes
   const handleNotificationsToggle = (enabled: boolean) => {
@@ -72,6 +73,7 @@ export default function Home() {
               onPostureUpdate={setPostureAnalysis}
               sirenEnabled={sirenEnabled}
               notificationsEnabled={notificationsEnabled}
+              onAlarmStateChange={setIsAlarmPlaying}
             />
             <SettingsPanel
               isMonitoring={monitoring}
@@ -80,6 +82,7 @@ export default function Home() {
               onSirenToggle={() => setSirenEnabled(!sirenEnabled)}
               notificationsEnabled={notificationsEnabled}
               onNotificationsToggle={handleNotificationsToggle}
+              isAlarmPlaying={isAlarmPlaying}
             />
           </div>
 

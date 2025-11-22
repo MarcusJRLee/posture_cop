@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import type { PostureAnalysis, PenaltyConfig } from "@/lib/posture_logic";
 import { useAppConfig } from "@/components/app_config_provider";
 import { AuthModal } from "@/components/auth/auth_modal";
@@ -14,6 +15,7 @@ export default function PostureScore({
   onConfigChange,
 }: PostureScoreProps) {
   const appConfig = useAppConfig();
+  const searchParams = useSearchParams();
   const {
     score,
     neckAngle,
@@ -37,6 +39,15 @@ export default function PostureScore({
 
   // Auth modal state
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // Auto-open auth modal if signin param is present
+  useEffect(() => {
+    if (searchParams.get("signIn") === "true") {
+      setShowAuthModal(true);
+      // Clear the URL param
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [searchParams]);
 
   // Update local config when prop changes (e.g., from "Set Baseline" button)
   useEffect(() => {

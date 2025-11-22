@@ -1,8 +1,40 @@
 "use client";
 
 import { useState } from "react";
-import { logIn, signUp } from "@/lib/auth/server_actions";
-import { signInWithGoogle } from "@/lib/auth/server_actions";
+import {
+  logIn,
+  signUp,
+  signInWithGoogle,
+  resendConfirmationEmail,
+} from "@/lib/auth/server_actions";
+
+function isEmailConfirmationError(reason: unknown): boolean {
+  if (!reason || typeof reason !== "object") {
+    return false;
+  }
+  const code = (reason as { code?: string }).code;
+  if (code === "email_not_confirmed") {
+    return true;
+  }
+  if (reason instanceof Error && reason.message === "Email not confirmed") {
+    return true;
+  }
+  return false;
+}
+
+function getAuthErrorMessage(reason: unknown): string {
+  if (!reason || typeof reason !== "object") {
+    return "Authentication failed";
+  }
+  const code = (reason as { code?: string }).code;
+  if (code === "invalid_credentials") {
+    return "Invalid log in credentials";
+  }
+  if (code === "email_not_confirmed") {
+    return "Email not confirmed";
+  }
+  return reason instanceof Error ? reason.message : "Authentication failed";
+}
 
 export function AuthModal({ onClose }: { onClose: () => void }) {
   const [email, setEmail] = useState("");
@@ -10,6 +42,9 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [signUpSuccess, setSignUpSuccess] = useState(false);
+  const [showResendButton, setShowResendButton] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,15 +54,36 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
     try {
       if (isSignUp) {
         await signUp(email, password);
+        setSignUpSuccess(true);
+        setIsSignUp(false);
+        setIsLoading(false);
       } else {
         await logIn(email, password);
+        // Reload the page to reflect auth state.
+        window.location.reload();
       }
-      // Reload the page to reflect auth state
-      window.location.reload();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Authentication failed");
+    } catch (reason: unknown) {
+      const message = getAuthErrorMessage(reason);
+      if (isEmailConfirmationError(reason)) {
+        setShowResendButton(true);
+      }
+      setError(message);
+      setResendSuccess(false);
       setIsLoading(false);
     }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!email) return;
+    setIsLoading(true);
+    try {
+      await resendConfirmationEmail(email);
+      setResendSuccess(true);
+      setError(null);
+    } catch {
+      setError("Failed to resend confirmation email. Please try again.");
+    }
+    setIsLoading(false);
   };
 
   const handleGoogleSignIn = async () => {
@@ -63,6 +119,27 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
             required
           />
           {error && <p className="text-red-600 text-sm">{error}</p>}
+          {showResendButton && !resendSuccess && (
+            <button
+              type="button"
+              onClick={handleResendConfirmation}
+              disabled={isLoading}
+              className="text-blue-600 text-sm underline hover:text-blue-800 disabled:opacity-50"
+            >
+              Resend confirmation email
+            </button>
+          )}
+          {resendSuccess && (
+            <p className="text-green-600 text-sm">
+              Confirmation email sent! Please check your inbox.
+            </p>
+          )}
+          {signUpSuccess && (
+            <p className="text-green-600 text-sm">
+              Sign up successful! Please confirm your email and sign in to
+              continue.
+            </p>
+          )}
           <button
             type="submit"
             disabled={isLoading}

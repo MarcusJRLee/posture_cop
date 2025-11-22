@@ -21,13 +21,25 @@ export async function logOut() {
 /** Log in a user using email and password. */
 export async function logIn(email: string, password: string) {
   const supabase = await getOrCreateSupabaseClient();
-  await supabase.auth.signInWithPassword({ email, password });
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw error;
 }
 
 /** Sign up a new user using email and password. */
 export async function signUp(email: string, password: string) {
   const supabase = await getOrCreateSupabaseClient();
-  await supabase.auth.signUp({ email, password });
+  const { error } = await supabase.auth.signUp({ email, password });
+  if (error) throw error;
+}
+
+/** Resend confirmation email to a user. */
+export async function resendConfirmationEmail(email: string) {
+  const supabase = await getOrCreateSupabaseClient();
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+  });
+  if (error) throw error;
 }
 
 /** Sign in with Google. */

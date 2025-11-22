@@ -8,31 +8,20 @@ import {
   resendConfirmationEmail,
 } from "@/lib/auth/server_actions";
 
+function signInUrl(): string {
+  return `${window.location.origin}?signin=true`;
+}
+
+/** Returns true if the reason represents an email confirmation error. */
 function isEmailConfirmationError(reason: unknown): boolean {
-  if (!reason || typeof reason !== "object") {
-    return false;
-  }
-  const code = (reason as { code?: string }).code;
-  if (code === "email_not_confirmed") {
-    return true;
-  }
   if (reason instanceof Error && reason.message === "Email not confirmed") {
     return true;
   }
   return false;
 }
 
+/** Returns the auth error message to show to the user for the given reason. */
 function getAuthErrorMessage(reason: unknown): string {
-  if (!reason || typeof reason !== "object") {
-    return "Authentication failed";
-  }
-  const code = (reason as { code?: string }).code;
-  if (code === "invalid_credentials") {
-    return "Invalid log in credentials";
-  }
-  if (code === "email_not_confirmed") {
-    return "Email not confirmed";
-  }
   return reason instanceof Error ? reason.message : "Authentication failed";
 }
 
@@ -53,7 +42,7 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
 
     try {
       if (isSignUp) {
-        await signUp(email, password);
+        await signUp(email, password, /* emailRedirectTo= */ signInUrl());
         setSignUpSuccess(true);
         setIsSignUp(false);
         setIsLoading(false);
@@ -89,7 +78,7 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
   const handleGoogleSignIn = async () => {
     setError(null);
     try {
-      await signInWithGoogle(/* redirectTo= */ window.location.origin);
+      await signInWithGoogle(/* redirectTo= */ signInUrl());
     } catch {
       setError("Google sign-in failed. Please try again.");
     }
@@ -195,9 +184,6 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
             {isSignUp ? "Sign In" : "Sign Up"}
           </button>
         </p>
-        <button onClick={onClose} className="mt-4 text-gray-500">
-          Close
-        </button>
       </div>
     </div>
   );

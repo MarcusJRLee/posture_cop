@@ -26,9 +26,19 @@ export async function logIn(email: string, password: string) {
 }
 
 /** Sign up a new user using email and password. */
-export async function signUp(email: string, password: string) {
+export async function signUp(
+  email: string,
+  password: string,
+  emailRedirectTo?: string
+) {
   const supabase = await getOrCreateSupabaseClient();
-  const { error } = await supabase.auth.signUp({ email, password });
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo,
+    },
+  });
   if (error) throw error;
 }
 

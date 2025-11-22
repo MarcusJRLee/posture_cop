@@ -25,6 +25,8 @@ export default function ClientBootstrap({
 }: AppConfigProviderProps) {
   logTick("client_bootstrap_hydration_start");
 
+  console.log(`TODO(mjrlee): User: ${appConfig.user?.email}`);
+
   useEffect(() => {
     logTick("client_bootstrap_effect_start");
   }, [appConfig.user]);

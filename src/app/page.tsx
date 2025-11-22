@@ -11,6 +11,7 @@ import {
   DEFAULT_PENALTY_CONFIG,
   type PenaltyConfig,
 } from "@/lib/posture_logic";
+import { SignOutButton } from "@/components/auth/sign_out_button";
 
 /** The main component for the home page. */
 export default function Home() {
@@ -18,8 +19,9 @@ export default function Home() {
   const [postureAnalysis, setPostureAnalysis] = useState<PostureAnalysis>(
     DEFAULT_POSTURE_ANALYSIS
   );
-  const [penaltyConfig, setPenaltyConfig] =
-    useState<PenaltyConfig>(DEFAULT_PENALTY_CONFIG);
+  const [penaltyConfig, setPenaltyConfig] = useState<PenaltyConfig>(
+    DEFAULT_PENALTY_CONFIG
+  );
   const [sirenEnabled, setSirenEnabled] = useState<boolean>(true);
   // Load notification preference from localStorage on mount using lazy initialization
   const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(
@@ -84,6 +86,7 @@ export default function Home() {
               onNotificationsToggle={handleNotificationsToggle}
               isAlarmPlaying={isAlarmPlaying}
             />
+            <SignOutButton />
           </div>
 
           <div className="lg:col-span-2">

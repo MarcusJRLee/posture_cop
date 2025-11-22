@@ -3,6 +3,8 @@
 import { useState } from "react";
 import CameraFeed from "@/components/camera_feed";
 import PostureScore from "@/components/posture_score";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 import SettingsPanel from "@/components/settings_panel";
 import CopMascot from "@/components/cop_mascot";
 import {
@@ -98,6 +100,8 @@ export default function Home() {
           </div>
         </div>
       </div>
+      <Analytics />
+      <SpeedInsights />
     </div>
   );
 }

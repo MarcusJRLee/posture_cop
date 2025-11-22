@@ -13,6 +13,7 @@
   "dependencies": {
     "@mediapipe/tasks-vision": "^0.10.22-rc.20250304",
     "@stripe/stripe-js": "^8.5.2",
+    "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.83.0",
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",

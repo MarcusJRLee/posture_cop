@@ -1,18 +1,7 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { createAppConfig } from "@/lib/app_config/create";
 import ClientBootstrap from "@/app/client_bootstrap";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -28,9 +17,7 @@ export default async function RootLayout({
   const appConfig = await createAppConfig();
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className="antialiased">
         <ClientBootstrap appConfig={appConfig}>{children}</ClientBootstrap>
       </body>
     </html>

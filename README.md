@@ -37,7 +37,8 @@ npx create-next-app@latest posture_cop \
 
 # Installed dependencies.
 npm i @vercel/speed-insights @vercel/analytics
-npm i @supabase/supabase-js stripe @stripe/stripe-js
+npm i @supabase/supabase-js @supabase/ssr
+npm i stripe @stripe/stripe-js
 
 # Install MediaPipe: mediapipe.dev
 # https://www.npmjs.com/package/@mediapipe/tasks-vision

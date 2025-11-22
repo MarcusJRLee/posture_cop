@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { PostureAnalysis, PenaltyConfig } from "@/lib/posture_logic";
+import { useAppConfig } from "@/components/app_config_provider";
+import { AuthModal } from "@/components/auth/auth_modal";
 interface PostureScoreProps {
   analysis: PostureAnalysis;
   config: PenaltyConfig;
@@ -11,6 +13,7 @@ export default function PostureScore({
   config,
   onConfigChange,
 }: PostureScoreProps) {
+  const appConfig = useAppConfig();
   const {
     score,
     neckAngle,
@@ -31,6 +34,9 @@ export default function PostureScore({
   // Local config state for debounced updates
   const [localConfig, setLocalConfig] = useState<PenaltyConfig>(config);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Auth modal state
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Update local config when prop changes (e.g., from "Set Baseline" button)
   useEffect(() => {
@@ -97,6 +103,12 @@ export default function PostureScore({
       : "bg-red-500";
 
   const handleBaseline = () => {
+    // Check if user is logged in
+    if (!appConfig.user) {
+      setShowAuthModal(true);
+      return;
+    }
+
     const newConfig = {
       neckAnglePenaltyCalcConfig: {
         ...localConfig.neckAnglePenaltyCalcConfig,
@@ -525,6 +537,8 @@ export default function PostureScore({
           </div>
         </div>
       </div>
+
+      {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use server";
 
-import { AppClientConfig } from "@/lib/app_config/types";
+import { AppConfig } from "@/lib/app_config/types";
 import { getUser } from "@/lib/auth/server_actions";
 
 /**
@@ -10,8 +10,8 @@ import { getUser } from "@/lib/auth/server_actions";
  * If any of the fields in here are needed on the server, fetch them directly
  * instead.
  */
-export async function createAppConfig(): Promise<AppClientConfig> {
-  const appClientConfig: AppClientConfig = {
+export async function createAppConfig(): Promise<AppConfig> {
+  const appClientConfig: AppConfig = {
     user: await getUser(),
   };
   return appClientConfig;

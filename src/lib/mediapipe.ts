@@ -7,6 +7,7 @@ import {
 
 let poseLandmarker: PoseLandmarker | null = null;
 let animationFrameId: number | null = null;
+let videoStream: MediaStream | null = null;
 
 /** Results from the pose detection. */
 interface PoseResults {
@@ -37,10 +38,10 @@ export const startPoseDetection = async (
   });
 
   // Start video stream
-  const stream = await navigator.mediaDevices.getUserMedia({
+  videoStream = await navigator.mediaDevices.getUserMedia({
     video: { width: 640, height: 480 },
   });
-  videoElement.srcObject = stream;
+  videoElement.srcObject = videoStream;
   await videoElement.play();
 
   // Process video frames with throttling (15fps instead of 60fps)
@@ -79,6 +80,10 @@ export const stopPoseDetection = () => {
   if (animationFrameId) {
     cancelAnimationFrame(animationFrameId);
     animationFrameId = null;
+  }
+  if (videoStream) {
+    videoStream.getTracks().forEach((track) => track.stop());
+    videoStream = null;
   }
   if (poseLandmarker) {
     poseLandmarker.close();
